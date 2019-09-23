@@ -3,7 +3,7 @@ import tempfile
 import os
 import datetime
 import pytest
-from airplane_demo import download_data
+from airline_demo import download_data
 
 def test_gen_date():
     dates = list(download_data.gen_date(datetime.date(2018, 1, 1), datetime.date(2019, 1, 1)))
