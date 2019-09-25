@@ -117,5 +117,3 @@ with beam.Pipeline() as pipeline:
         | 'flights:TzCorrect' >> beam.ParDo(TzCorrect(), beam.pvalue.AsDict(airports))
         | 'flights:GetEvents' >> beam.ParDo(GetEvents())
         | 'flights:WriteData' >> beam.io.WriteToText(OUT))
-
-
