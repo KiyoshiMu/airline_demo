@@ -3,7 +3,7 @@ A demo for a toy project based on Google Cloud
 
 Image you are on a airplane and you're going to a far place where you will have a super important meeting. If you're going to be late, it's better to cancel it early (when the wheels get off) than letting the CEO or CTO wait your arrive, annoying that you dare to not respect them. 
 
-Still, it's acceptable for someone to be late **less than 10 minutes**. After all, all human beings understand as a non-machine it's hard to be punctual everytime. As a result, you want somehow you can predict whether you should cancel the meeting to have as many not-too-late meetings as possibe.
+Still, it's acceptable for someone to be late **less than 10 minutes**. After all, all human beings understand as a non-machine it's hard to be punctual everytime. As a result, you want somehow you can predict whether you should cancel the meeting to have as many not-too-late meetings as possibe, before your airplane wheels off.
 
 This project's goal is to build a deep-learning model that can give the you the suggestion about whether to cancel such meetings.
 

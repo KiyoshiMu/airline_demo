@@ -1,9 +1,13 @@
+"""A script for merging real-time depart and arrive data to a simgle sample 
+used to build the deep-learning model"""
+
 import logging
 import apache_beam as beam
 
-TEST = '201809.csv'
-OUT = 'out'
-AIRPORT = 'data\\airports.csv'
+LOGS = 'data/logss'
+MERGED = 'data/merge'
+AIRPORT = 'data/airports.csv'
+# class 
 
 class CleanLine(beam.DoFn):
 
@@ -88,22 +92,6 @@ class TzCorrect(beam.DoFn):
         else:
             return arr_time
 
-class GetEvents(beam.DoFn):
-    def process(self, fields):
-        dep_time = fields[14]
-        if dep_time:
-            event = list(fields)
-            event.extend(['departed', dep_time])
-            for f in (16, 17, 18, 19, 21, 22, 24):
-                event[f] = ''
-            yield event
-
-        arr_time = fields[21]
-        if arr_time:
-            event = list(fields)
-            event.extend(['arrived', arr_time])
-            yield event
-
 with beam.Pipeline() as pipeline:
 
     airports = (pipeline
@@ -112,8 +100,12 @@ with beam.Pipeline() as pipeline:
               | 'airports:AddTz' >> beam.ParDo(AddTz()))
 
     flights = (pipeline
-        | 'flights:ReadData' >> beam.io.ReadFromText(TEST, skip_header_lines=1)
-        | 'flights:ToField' >> beam.ParDo(CleanLine())
-        | 'flights:TzCorrect' >> beam.ParDo(TzCorrect(), beam.pvalue.AsDict(airports))
-        | 'flights:GetEvents' >> beam.ParDo(GetEvents())
-        | 'flights:WriteData' >> beam.io.WriteToText(OUT))
+              | 'flights:Read' >> beam.io.ReadFromText(LOGS)
+              # you will not need the prediction for a canceled flight, which never arrives
+              | 'flights:GetUseful' >> beam.Filter(
+                                        lambda line: line.rsplit(',', 2)[-2] == 'arrived')
+              | 'flights:GetField' >> beam.Map(lambda line: line.split(',')[:-2])
+              | 'flights:TzCorrect' >> beam.ParDo(TzCorrect(), beam.pvalue.AsDict(airports))
+              | 'flights:Compress' >> beam.Map(lambda fields: ','.join(fields))
+              | 'flights:Write' >> beam.io.WriteToText(f'{MERGED}', file_name_suffix='.csv')
+    )
