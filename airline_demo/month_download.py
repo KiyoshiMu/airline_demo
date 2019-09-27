@@ -27,8 +27,9 @@ class Uploader:
         logging.info('%s upload completed', f_p)
 
     def exist_check(self, date, blobpath):
-        blobs = set(file_.name for file_ in self.bucket.list_blobs(prefix=blobpath))
-        return f'{date.year}-{date.month}.csv' in blobs
+        blobs = set(os.path.basename(file_.name)
+                    for file_ in self.bucket.list_blobs(prefix=blobpath))
+        return f'{date.year}-{date.month:02d}.csv' in blobs
 
 def _get_download_data(date):
     target = {'year':date.year, 'month':calendar.month_name[date.month], 'm_num':date.month}

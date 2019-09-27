@@ -3,7 +3,7 @@
 import datetime
 import argparse
 
-from airline_demo import month_download
+import month_download
 
 def _replace_day(date):
     return date.replace(day=15)
@@ -32,7 +32,7 @@ def main(start_date=None, end_date=None):
 
 def _parse_month(arg:str):
     info = arg.split('-')
-    return datetime.date(year=info[0], month=info[1], day=15)
+    return datetime.date(year=int(info[0]), month=int(info[1]), day=15)
 
 if __name__ == "__main__":
     # download()

@@ -1,6 +1,8 @@
 """A stript for creating real logs from downloaded data"""
 
+import argparse
 import apache_beam as beam
+from apache_beam.options.pipeline_options import PipelineOptions
 
 RAW_DATA = 'data/2018-09.csv'
 LOGS = 'data/logs'
@@ -32,11 +34,48 @@ class CreatEvents(beam.DoFn):
             event.extend(['arrived', arr_time])
             yield event
 
-with beam.Pipeline() as pipeline:
-    _ = (pipeline
-        | 'Read' >> beam.io.ReadFromText(RAW_DATA, skip_header_lines=1)
-        | 'Create_Fields' >> beam.ParDo(CleanLine())
-        | 'Create_Events' >> beam.ParDo(CreatEvents())
-        | 'Create_Log' >> beam.Map(lambda fields: ','.join(fields))
-        | 'Write' >> beam.io.WriteToText(LOGS)
-    )
+# class CreatLogOptions(PipelineOptions):
+#     @classmethod
+#     def _add_argparse_args(cls, parser):
+#         parser.add_value_provider_argument('--input', required=False,
+#         help='Input file to be read. This can be a local file or '
+#              'a file in Google Strorage Bucket',
+#         default='gs://linelineline/tmp/csvs/2018*.csv')
+#         parser.add_value_provider_argument('--output', required=False, 
+#         help='Write result log to',
+#         default='gs://linelineline/tmp/logs/log')
+
+def run(argv=None):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--input', required=False,
+        help='Input file to be read. This can be a local file or '
+             'a file in Google Strorage Bucket',
+        default='gs://linelineline/flights/csvs/2018*.csv')
+    parser.add_argument('--output', required=False, help='Write result log to',
+        default='gs://linelineline/flights/logs/log')
+    known_args, pipeline_args = parser.parse_known_args(argv)
+    pipeline_options = PipelineOptions(pipeline_args)
+    with beam.Pipeline(options=pipeline_options) as pipeline:
+        # known_args = pipeline_options.view_as(CreatLogOptions)
+        _ = (pipeline
+            | 'Read' >> beam.io.ReadFromText(known_args.input, skip_header_lines=1)
+            | 'Create_Fields' >> beam.ParDo(CleanLine())
+            | 'Create_Events' >> beam.ParDo(CreatEvents())
+            | 'Create_Log' >> beam.Map(lambda fields: ','.join(fields))
+            | 'Write' >> beam.io.WriteToText(known_args.output)
+        )
+
+if __name__ == "__main__":
+    argv = [
+        '--project={}'.format('airlinegcp'),
+        '--job_name=creat-log',
+        # 'flexrs_goal=COST_OPTIMIZED',
+        '--staging_location=gs://{}/tmp/staging1/'.format('linelineline'),
+        '--temp_location=gs://{}/tmp/temp1/'.format('linelineline'),
+        # '--setup_file=./setup.py',
+        '--max_num_workers=10',
+        '--autoscaling_algorithm=THROUGHPUT_BASED',
+        '--runner=DataflowRunner'
+        '--region=us-central1'
+        ]
+    run(argv)

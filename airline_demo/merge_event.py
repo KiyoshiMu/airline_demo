@@ -2,7 +2,9 @@
 used to build the deep-learning model"""
 
 import logging
+import argparse
 import apache_beam as beam
+from apache_beam.options.pipeline_options import PipelineOptions
 
 LOGS = 'data/logss'
 MERGED = 'data/merge'
@@ -92,20 +94,49 @@ class TzCorrect(beam.DoFn):
         else:
             return arr_time
 
-with beam.Pipeline() as pipeline:
+def run(argv=None):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--input', required=False,
+        help='Input file to be read. This can be a local file or '
+             'a file in Google Strorage Bucket',
+        default='gs://linelineline/flights/logs/log*')
+    parser.add_argument('--output', required=False, help='Write result Merge to',
+        default='gs://linelineline/flights/merges/merge')
+    parser.add_argument('--airport', required=False, help='Write result Merge to',
+        default='gs://linelineline/airports/airports.csv')
+    known_args, pipeline_args = parser.parse_known_args(argv)
+    pipeline_options = PipelineOptions(pipeline_args)
 
-    airports = (pipeline
-              | 'airports:ReadData' >> beam.io.ReadFromText(AIRPORT, skip_header_lines=1)
-              | 'airports:ToField' >> beam.ParDo(CleanLine())
-              | 'airports:AddTz' >> beam.ParDo(AddTz()))
+    with beam.Pipeline(options=pipeline_options) as pipeline:
+        airports = (pipeline
+                | 'airports:ReadData' >> beam.io.ReadFromText(known_args.airport,
+                                                              skip_header_lines=1)
+                | 'airports:ToField' >> beam.ParDo(CleanLine())
+                | 'airports:AddTz' >> beam.ParDo(AddTz()))
 
-    flights = (pipeline
-              | 'flights:Read' >> beam.io.ReadFromText(LOGS)
-              # you will not need the prediction for a canceled flight, which never arrives
-              | 'flights:GetUseful' >> beam.Filter(
-                                        lambda line: line.rsplit(',', 2)[-2] == 'arrived')
-              | 'flights:GetField' >> beam.Map(lambda line: line.split(',')[:-2])
-              | 'flights:TzCorrect' >> beam.ParDo(TzCorrect(), beam.pvalue.AsDict(airports))
-              | 'flights:Compress' >> beam.Map(lambda fields: ','.join(fields))
-              | 'flights:Write' >> beam.io.WriteToText(f'{MERGED}', file_name_suffix='.csv')
-    )
+        _ = (pipeline
+                | 'flights:Read' >> beam.io.ReadFromText(known_args.input)
+                # you will not need the prediction for a canceled flight, which never arrives
+                | 'flights:GetUseful' >> beam.Filter(
+                                            lambda line: line.rsplit(',', 2)[-2] == 'arrived')
+                | 'flights:GetField' >> beam.Map(lambda line: line.split(',')[:-2])
+                | 'flights:TzCorrect' >> beam.ParDo(TzCorrect(), beam.pvalue.AsDict(airports))
+                | 'flights:Compress' >> beam.Map(lambda fields: ','.join(
+                    fields[idx] for idx in [0, 1, 6, 9, 14, 15, 22, 26, 27, 28, 30, 31]))
+                | 'flights:Write' >> beam.io.WriteToText(known_args.output)
+        )
+
+if __name__ == "__main__":
+    argv = [
+        '--project={}'.format('airlinegcp'),
+        '--job_name=create-merge',
+        '--flexrs_goal=COST_OPTIMIZED',
+        '--staging_location=gs://{}/tmp/staging2/'.format('linelineline'),
+        '--temp_location=gs://{}/tmp/temp2/'.format('linelineline'),
+        '--setup_file=./setup.py',
+        '--max_num_workers=10',
+        '--runner=DataflowRunner',
+        '--region=us-central1'
+        ]
+    run(argv)
+
