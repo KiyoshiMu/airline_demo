@@ -50,9 +50,9 @@ def run(argv=None):
     parser.add_argument('--input', required=False,
         help='Input file to be read. This can be a local file or '
              'a file in Google Strorage Bucket',
-        default='gs://linelineline/tmp/csvs/2018*.csv')
+default='gs://linelineline/tmp/csvs/2018*.csv')
     parser.add_argument('--output', required=False, help='Write result log to',
-        default='gs://linelineline/tmp/logs/log')
+        default='gs://linelineline/flights/logs/log')
     known_args, pipeline_args = parser.parse_known_args(argv)
     pipeline_options = PipelineOptions(pipeline_args)
     with beam.Pipeline(options=pipeline_options) as pipeline:
@@ -69,13 +69,13 @@ if __name__ == "__main__":
     argv = [
         '--project={}'.format('airlinegcp'),
         '--job_name=creat-log',
-        'flexrs_goal=COST_OPTIMIZED',
-        '--staging_location=gs://{}/flights/staging/'.format('linelineline'),
-        '--temp_location=gs://{}/flights/temp/'.format('linelineline'),
+        # 'flexrs_goal=COST_OPTIMIZED',
+        '--staging_location=gs://{}/tmp/staging1/'.format('linelineline'),
+        '--temp_location=gs://{}/tmp/temp1/'.format('linelineline'),
         # '--setup_file=./setup.py',
         '--max_num_workers=10',
         '--autoscaling_algorithm=THROUGHPUT_BASED',
-        '--runner=DataflowRunner'
+        '--runner=DataflowRunner',
         '--region=us-central1'
         ]
     run(argv)

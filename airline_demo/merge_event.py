@@ -99,9 +99,9 @@ def run(argv=None):
     parser.add_argument('--input', required=False,
         help='Input file to be read. This can be a local file or '
              'a file in Google Strorage Bucket',
-        default='gs://linelineline/tmp/logs/log*')
+        default='gs://linelineline/flights/logs/log*')
     parser.add_argument('--output', required=False, help='Write result Merge to',
-        default='gs://linelineline/tmp/merges/merge')
+        default='gs://linelineline/flights/merges/merge')
     parser.add_argument('--airport', required=False, help='Write result Merge to',
         default='gs://linelineline/airports/airports.csv')
     known_args, pipeline_args = parser.parse_known_args(argv)
@@ -121,7 +121,8 @@ def run(argv=None):
                                             lambda line: line.rsplit(',', 2)[-2] == 'arrived')
                 | 'flights:GetField' >> beam.Map(lambda line: line.split(',')[:-2])
                 | 'flights:TzCorrect' >> beam.ParDo(TzCorrect(), beam.pvalue.AsDict(airports))
-                | 'flights:Compress' >> beam.Map(lambda fields: ','.join(fields))
+                | 'flights:Compress' >> beam.Map(lambda fields: ','.join(
+                    fields[idx] for idx in [0, 1, 6, 9, 14, 15, 22, 26, 27, 28, 30, 31]))
                 | 'flights:Write' >> beam.io.WriteToText(known_args.output)
         )
 
@@ -130,8 +131,8 @@ if __name__ == "__main__":
         '--project={}'.format('airlinegcp'),
         '--job_name=create-merge',
         '--flexrs_goal=COST_OPTIMIZED',
-        '--staging_location=gs://{}/flights/staging2/'.format('linelineline'),
-        '--temp_location=gs://{}/flights/temp2/'.format('linelineline'),
+        '--staging_location=gs://{}/tmp/staging2/'.format('linelineline'),
+        '--temp_location=gs://{}/tmp/temp2/'.format('linelineline'),
         '--setup_file=./setup.py',
         '--max_num_workers=10',
         '--runner=DataflowRunner',
