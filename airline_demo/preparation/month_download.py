@@ -52,7 +52,7 @@ def _unzip(f_p, dst):
     logging.info('Unzip completed to %s', csv_p)
     return csv_p
 
-def download(date, dst):
+def download(date, dst) -> str:
     name, data = _get_download_data(date)
     f_p = os.path.join(dst, name)
     _get_zip(f_p, data)
