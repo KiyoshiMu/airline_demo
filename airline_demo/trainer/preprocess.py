@@ -34,7 +34,7 @@ def preprocessing_fn(inputs):
 
     # bucketize numeric columns
     for key in TO_BE_BUCKETIZED_FEATURE:
-        outputs[key] = tft.bucketize(
+        outputs[f'{key}_b'] = tft.bucketize(
             inputs[key],
             TO_BE_BUCKETIZED_FEATURE[key]
         )
@@ -171,6 +171,3 @@ def main(argv=None):
                                  root_test_data_out=args.root_test_data_out,
                                  pipeline_options=pipeline_options)
 
-
-if __name__ == '__main__':
-    main()
