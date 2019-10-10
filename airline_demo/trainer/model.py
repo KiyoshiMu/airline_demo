@@ -47,7 +47,7 @@ def build_estimator(config, hidden_units=None):
             tf.feature_column.crossed_column(['dep_lat_b', 'dep_lng_b'], 36))
     ])
     
-    return tf.estimator.DNNClassifier(config=config,
+    return tf.estimator.DNNRegressor(config=config,
                                     feature_columns=real_valued_columns+categorical_columns,
                                     hidden_units=hidden_units or [70, 50, 25])
 

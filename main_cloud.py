@@ -1,3 +1,4 @@
+import time
 from airline_demo.trainer import preprocess
 from airline_demo.trainer import task
 from airline_demo.trainer import model
@@ -6,20 +7,25 @@ import tensorflow_transform as tft
 
 if __name__ == "__main__":
     ARGV1 = [
-        '--train-data-file=data/train.csv',
-        '--test-data-file=data/val.csv',
+        '--train-data-file=gs://linelineline/raw_data/train-*',
+        '--test-data-file=gs://linelineline/raw_data/eval-*',
         '--root-train-data-out=train',
         '--root-test-data-out=test',
-        '--working-dir=work_dir'
+        '--working-dir=gs://linelineline/work_dir'
+        '--runner=DataflowRunner',
+        '--region=us-central1-a', \
+        f'--job_name=preprocess{time.time()}',
+        '--setup_file ./setup.py',
+        '--flexrs_goal=COST_OPTIMIZED'
     ]
     preprocess.main(ARGV1)
 
     # ARGV2 = [
-    #     '--train_files=work_dir/train*',
-    #     '--tf_transform_dir=work_dir',
+    #     '--train_files=gs://linelineline/work_dir/train*',
+    #     '--tf_transform_dir=gs://linelineline/work_dir',
     #     '--output_dir=models',
-    #     '--eval_files=work_dir/test*',
-    #     '--train_steps=200',
+    #     '--eval_files=gs://linelineline/work_dir/eval*',
+    #     '--train_steps=2000',
         # '--tag=flights'
         #  '--job_dir',
     # ]

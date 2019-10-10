@@ -43,7 +43,9 @@ def preprocessing_fn(inputs):
         outputs[key] = tft.hash_strings(inputs[key], HASH_STRING_FEATURE_KEYS[key])
 
     # For the label column we transform it either 0 or 1 if there are row leads
-    outputs[LABEL_KEY] = _convert_label(inputs[LABEL_KEY])
+    # outputs[LABEL_KEY] = _convert_label(inputs[LABEL_KEY])
+    outputs[LABEL_KEY] = inputs[LABEL_KEY] # change it to a regression problem
+
     return outputs
 
 def _convert_label(label):

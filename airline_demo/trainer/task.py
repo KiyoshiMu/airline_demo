@@ -158,3 +158,5 @@ def main(argv=None):
     # estimator = train_and_maybe_evaluate(hparams)
 
     # return estimator
+if __name__ == "__main__":
+    main()
