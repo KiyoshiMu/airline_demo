@@ -3,6 +3,7 @@ import os
 import logging
 
 import apache_beam as beam
+from apache_beam import pvalue
 import tensorflow as tf
 import tensorflow_transform as tft
 import tensorflow_transform.beam as tft_beam
@@ -20,9 +21,10 @@ class RemoveNull(beam.DoFn):
     def process(self, line):
         items = line.split(',')
         if all(item for item in items):
-            yield line
+            yield pvalue.TaggedOutput('Y', line)
         else:
-            logging.error(f'data incomplete: {line}')
+            # logging.error(f'data incomplete: {line}')
+            yield pvalue.TaggedOutput('N', line)
 
 def preprocessing_fn(inputs):
     """Preprocess input columns into transformed columns."""
@@ -81,11 +83,12 @@ def transform_data(train_data_file,
 
             converter = tft.coders.csv_coder.CsvCoder(ORDERED_COLUMNS, 
                                 RAW_DATA_METADATA.schema)
-            raw_data = (
+            raw_data_ = (
                     pipeline
                     | 'Train:ReadData' >> beam.io.ReadFromText(train_data_file, 
                                                                skip_header_lines=1)
-                    | 'Train:RemoveNull' >> beam.ParDo(RemoveNull())
+                    | 'Train:RemoveNull' >> beam.ParDo(RemoveNull()).with_outputs('Y', 'N'))
+            raw_data = (raw_data_.Y
                     | 'Train:Decode' >> beam.Map(converter.decode))
 
             raw_dataset = (raw_data, RAW_DATA_METADATA)
@@ -100,11 +103,12 @@ def transform_data(train_data_file,
                     os.path.join(working_dir, root_train_data_out),
                     coder=transformed_data_coder)
 
-            raw_test_data = (
+            raw_test_data_ = (
                     pipeline
                     | 'Test:ReadData' >> beam.io.ReadFromText(test_data_file,
                                                               skip_header_lines=1)
-                    | 'Test:RemoveNull' >> beam.ParDo(RemoveNull())
+                    | 'Test:RemoveNull' >> beam.ParDo(RemoveNull()).with_outputs('Y', 'N'))
+            raw_test_data = (raw_test_data_.Y
                     | 'Test:DecodeData' >> beam.Map(converter.decode))
 
             raw_test_dataset = (raw_test_data, RAW_DATA_METADATA)
@@ -121,10 +125,16 @@ def transform_data(train_data_file,
             # Will write a SavedModel and metadata to two subdirectories of
             # working_dir, given by transform_fn_io.TRANSFORM_FN_DIR and
             # transform_fn_io.TRANSFORMED_METADATA_DIR respectively.
-            _ = (
-                transform_fn
+            _ = (transform_fn
                 | 'WriteTransformFn' >>
                 tft_beam.WriteTransformFn(working_dir))
+
+            _ = ((raw_data_.N, raw_test_data_.N)
+                | beam.Flatten()
+                | 'WriteError' >> beam.io.WriteToText(
+                   os.path.join(working_dir, 'error')
+                )
+            )
 
 def main(argv=None):
     parser = argparse.ArgumentParser()
