@@ -39,7 +39,7 @@ def build_estimator(config, hidden_units=None):
     categorical_columns.extend([
         tf.feature_column.indicator_column(
             tf.feature_column.categorical_column_with_identity(
-            f'{key}_b', num_buckets=TO_BE_BUCKETIZED_FEATURE[key], default_value=0))
+            '{}_b'.format(key), num_buckets=TO_BE_BUCKETIZED_FEATURE[key], default_value=0))
             for key in TO_BE_BUCKETIZED_FEATURE])
 
     categorical_columns.extend([

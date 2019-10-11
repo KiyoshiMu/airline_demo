@@ -32,6 +32,8 @@ We want to use it to demostrate how to create a pipeline on GCP. Also, batch dat
 
  1. Monthly Data Download: Cloud Schedule -> Cloud Pub/Sub -> Cloud Function -> Cloud VM -> Cloud Pub/Sub -> Cloud Function -> Cloud VM
  2. Data Preparison: Cloud Dataflow
+ 3. Data Exploration: Bigquery
+
 
 ### Ai-platform
 
@@ -59,8 +61,8 @@ CLI are as below:
                                     --runtime-version 1.14 \
                                     --python-version 3.5 \
                                     --staging-bucket gs://linelineline \
-                                    --module-name task.task \
-                                    --package-path task \
+                                    --module-name trainer.task \
+                                    --package-path trainer \
                                     --region us-central1 \
                                     --project airlinegcp \
                                     -- \
