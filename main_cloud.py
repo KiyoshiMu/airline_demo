@@ -11,12 +11,13 @@ if __name__ == "__main__":
         '--test-data-file=gs://linelineline/raw_data/eval-*',
         '--root-train-data-out=train',
         '--root-test-data-out=test',
-        '--working-dir=gs://linelineline/work_dir'
+        '--working-dir=gs://linelineline/work_dir',
         '--runner=DataflowRunner',
-        '--region=us-central1-a', \
-        f'--job_name=preprocess{time.time()}',
-        '--setup_file ./setup.py',
-        '--flexrs_goal=COST_OPTIMIZED'
+        '--region=us-central1',
+        f'--job_name=preprocess{int(time.time())}',
+        '--setup_file=./setup.py',
+        '--flexrs_goal=COST_OPTIMIZED',
+        '--project=airlinegcp'
     ]
     preprocess.main(ARGV1)
 

@@ -1,5 +1,5 @@
 from airline_demo.trainer import preprocess
-from airline_demo.trainer import task
+from airline_demo.trainer.task import task
 from airline_demo.trainer import model
 
 import tensorflow_transform as tft
@@ -12,19 +12,19 @@ if __name__ == "__main__":
         '--root-test-data-out=test',
         '--working-dir=work_dir'
     ]
-    preprocess.main(ARGV1)
+    # preprocess.main(ARGV1)
 
-    # ARGV2 = [
-    #     '--train_files=work_dir/train*',
-    #     '--tf_transform_dir=work_dir',
-    #     '--output_dir=models',
-    #     '--eval_files=work_dir/test*',
-    #     '--train_steps=200',
+    ARGV2 = [
+        '--train_files=work_dir/train*',
+        '--tf_transform_dir=work_dir',
+        '--output_dir=models',
+        '--eval_files=work_dir/test*',
+        '--train_steps=20000',
         # '--tag=flights'
         #  '--job_dir',
-    # ]
+    ]
 
-    # task.main(ARGV2)
+    task.main(ARGV2)
     
     # tf_transform_output = tft.TFTransformOutput('work_dir')
     # print(model.eval_input_receiver_fn(tf_transform_output))
