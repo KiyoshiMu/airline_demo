@@ -33,4 +33,37 @@ We want to use it to demostrate how to create a pipeline on GCP. Also, batch dat
  1. Monthly Data Download: Cloud Schedule -> Cloud Pub/Sub -> Cloud Function -> Cloud VM -> Cloud Pub/Sub -> Cloud Function -> Cloud VM
  2. Data Preparison: Cloud Dataflow
 
-### 
+### Ai-platform
+
+CLI are as below:
+
+    DATE=`date '+%Y%m%d_%H%M%S'`
+    export JOB_NAME=flight_$DATE
+    export GCS_JOB_DIR=gs://linelineline/jobs/$JOB_NAME
+
+    gcloud ai-platform local train\
+                                    --module-name task.task \
+                                    --package-path task \
+                                    --project airlinegcp \
+                                    -- \
+                                    --train_steps 1000 \
+                                    --tf_transform_dir gs://linelineline/work_dir \
+                                    --output_dir gs://linelineline/models \
+                                    --train_files gs://linelineline/work_dir/train* \
+                                    --eval_files gs://linelineline/work_dir/test*
+
+    gcloud ai-platform jobs submit training $JOB_NAME \
+                                    --stream-logs \
+                                    --runtime-version 1.14 \
+                                    --python-version 3.5 \
+                                    --job-dir $GCS_JOB_DIR \
+                                    --module-name task.task \
+                                    --package-path task \
+                                    --region us-central1 \
+                                    --project airlinegcp \
+                                    -- \
+                                    --tf_transform_dir gs://linelineline/work_dir \
+                                    --output_dir=gs://linelineline/models \
+                                    --train-steps 50000 \
+                                    --train_files=gs://linelineline/work_dir/train* \
+                                    --eval_files=gs://linelineline/work_dir/test*

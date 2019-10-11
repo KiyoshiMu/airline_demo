@@ -8,7 +8,10 @@ import tensorflow_transform.beam as tft_beam
 from tensorflow_transform.tf_metadata import schema_utils
 import tensorflow_model_analysis as tfma
 
-from airline_demo.trainer import input_metadata
+try:
+    from airline_demo.trainer import input_metadata
+except ImportError:
+    import input_metadata
 
 tf.config.optimizer.set_jit(True)
 

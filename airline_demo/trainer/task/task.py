@@ -2,9 +2,13 @@ import argparse
 import os
 
 import tensorflow as tf
-import tensorflow_model_analysis as tfma
+# import tensorflow_model_analysis as tfma
 import tensorflow_transform as tft
-from airline_demo.trainer import model
+
+try:
+    from airline_demo.trainer import model
+except ImportError:
+    import model
 
 SERVING_MODEL_DIR = 'serving_model_dir'
 EVAL_MODEL_DIR = 'eval_model_dir'
@@ -47,12 +51,12 @@ def train_and_maybe_evaluate(hparams):
     serving_receiver_fn = lambda: model.example_serving_receiver_fn(
             tf_transform_output)
 
-    exporter = tf.estimator.FinalExporter(f'{tag}', serving_receiver_fn)
+    exporter = tf.estimator.FinalExporter(tag, serving_receiver_fn)
     eval_spec = tf.estimator.EvalSpec(
             eval_input,
             steps=hparams.eval_steps,
             exporters=[exporter],
-            name=f'{tag}-eval')
+            name='{}-eval'.format(tag))
 
     run_config = tf.estimator.RunConfig(
             save_checkpoints_steps=999, keep_checkpoint_max=1)
@@ -73,26 +77,26 @@ def train_and_maybe_evaluate(hparams):
 
     return estimator
 
-def run_experiment(hparams):
-    """Train the model then export it for tf.model_analysis evaluation.
+# def run_experiment(hparams):
+#     """Train the model then export it for tf.model_analysis evaluation.
 
-    Args:
-        hparams: Holds hyperparameters used to train the model as name/value pairs.
-    """
-    estimator = train_and_maybe_evaluate(hparams)
+#     Args:
+#         hparams: Holds hyperparameters used to train the model as name/value pairs.
+#     """
+#     estimator = train_and_maybe_evaluate(hparams)
 
-    tf_transform_output = tft.TFTransformOutput(hparams.tf_transform_dir)
+#     tf_transform_output = tft.TFTransformOutput(hparams.tf_transform_dir)
 
     # Save a model for tfma eval
-    eval_model_dir = os.path.join(hparams.output_dir, EVAL_MODEL_DIR)
+    # eval_model_dir = os.path.join(hparams.output_dir, EVAL_MODEL_DIR)
 
-    receiver_fn = lambda: model.eval_input_receiver_fn(
-            tf_transform_output)
+    # receiver_fn = lambda: model.eval_input_receiver_fn(
+    #         tf_transform_output)
 
-    tfma.export.export_eval_savedmodel(
-            estimator=estimator,
-            export_dir_base=eval_model_dir,
-            eval_input_receiver_fn=receiver_fn)
+    # tfma.export.export_eval_savedmodel(
+    #         estimator=estimator,
+    #         export_dir_base=eval_model_dir,
+    #         eval_input_receiver_fn=receiver_fn)
 
 def main(argv=None):
     parser = argparse.ArgumentParser()
@@ -153,9 +157,9 @@ def main(argv=None):
     # Set python level verbosity
     tf.logging.set_verbosity(args.verbosity)
     hparams = args
-    run_experiment(hparams)
+    # run_experiment(hparams)
 
-    # estimator = train_and_maybe_evaluate(hparams)
+    train_and_maybe_evaluate(hparams)
 
     # return estimator
 if __name__ == "__main__":
