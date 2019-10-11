@@ -6,7 +6,7 @@ import tensorflow as tf
 import tensorflow_transform as tft
 import tensorflow_transform.beam as tft_beam
 from tensorflow_transform.tf_metadata import schema_utils
-import tensorflow_model_analysis as tfma
+# import tensorflow_model_analysis as tfma
 
 try:
     from airline_demo.trainer import input_metadata
@@ -110,10 +110,10 @@ def eval_input_receiver_fn(tf_transform_output):
     # NOTE: Model is driven by transformed features (since training works on the
     # materialized output of TFT, but slicing will happen on raw features.
     features.update(transformed_features)
-    return tfma.export.EvalInputReceiver(
-        features=features,
-        receiver_tensors=receiver_tensors,
-        labels=transformed_features[LABEL_KEY])
+    # return tfma.export.EvalInputReceiver(
+    #     features=features,
+    #     receiver_tensors=receiver_tensors,
+    #     labels=transformed_features[LABEL_KEY])
 
 def input_fn(filenames, tf_transform_output, batch_size=200):
     """Generates features and labels for training or evaluation.
