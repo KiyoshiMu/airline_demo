@@ -8,7 +8,7 @@ import tensorflow as tf
 import tensorflow_transform as tft
 import tensorflow_transform.beam as tft_beam
 
-from airline_demo.trainer import input_metadata
+from airline_demo.ml.trainer import input_metadata
 
 HASH_STRING_FEATURE_KEYS = input_metadata.HASH_STRING_FEATURE_KEYS
 LABEL_KEY = input_metadata.LABEL_KEY
@@ -45,8 +45,7 @@ def preprocessing_fn(inputs):
         outputs[key] = tft.hash_strings(inputs[key], HASH_STRING_FEATURE_KEYS[key])
 
     # For the label column we transform it either 0 or 1 if there are row leads
-    # outputs[LABEL_KEY] = _convert_label(inputs[LABEL_KEY])
-    outputs[LABEL_KEY] = inputs[LABEL_KEY] # change it to a regression problem
+    outputs[LABEL_KEY] = inputs[LABEL_KEY]
 
     return outputs
 

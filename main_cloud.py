@@ -1,7 +1,7 @@
 import time
-from airline_demo.trainer import preprocess
-from airline_demo.trainer import task
-from airline_demo.trainer import model
+from airline_demo.ml import preprocess
+from airline_demo.ml.trainer import task
+from airline_demo.ml.trainer import model
 
 import tensorflow_transform as tft
 
@@ -10,7 +10,7 @@ if __name__ == "__main__":
         '--train-data-file=gs://linelineline/raw_data/train-*',
         '--test-data-file=gs://linelineline/raw_data/eval-*',
         '--root-train-data-out=train',
-        '--root-test-data-out=test',
+        '--root-test-data-out=eval',
         '--working-dir=gs://linelineline/work_dir',
         '--runner=DataflowRunner',
         '--region=us-central1',

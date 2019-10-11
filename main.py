@@ -1,15 +1,14 @@
-from airline_demo.trainer import preprocess
-from airline_demo.trainer.task import task
-from airline_demo.trainer import model
+from airline_demo.ml import preprocess
+from airline_demo.ml.trainer import task
 
 import tensorflow_transform as tft
 
 if __name__ == "__main__":
     ARGV1 = [
         '--train-data-file=data/train.csv',
-        '--test-data-file=data/val.csv',
+        '--test-data-file=data/eval.csv',
         '--root-train-data-out=train',
-        '--root-test-data-out=test',
+        '--root-test-data-out=eval',
         '--working-dir=work_dir'
     ]
     # preprocess.main(ARGV1)
@@ -18,16 +17,9 @@ if __name__ == "__main__":
         '--train_files=work_dir/train*',
         '--tf_transform_dir=work_dir',
         '--output_dir=models',
-        '--eval_files=work_dir/test*',
-        '--train_steps=20000',
+        '--eval_files=work_dir/eval*',
+        '--train_steps=2000',
         # '--tag=flights'
         #  '--job_dir',
     ]
-
     task.main(ARGV2)
-    
-    # tf_transform_output = tft.TFTransformOutput('work_dir')
-    # print(model.eval_input_receiver_fn(tf_transform_output))
-    # fn = 'work_dir/train*'
-    # print(model.get_raw_feature_spec())
-    # print(model.input_fn(fn, tf_transform_output))

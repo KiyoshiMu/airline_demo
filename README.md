@@ -35,6 +35,8 @@ We want to use it to demostrate how to create a pipeline on GCP. Also, batch dat
 
 ### Ai-platform
 
+(tfma makes a lot of trouble and is useless)
+
 CLI are as below:
 
     DATE=`date '+%Y%m%d_%H%M%S'`
@@ -50,20 +52,22 @@ CLI are as below:
                                     --tf_transform_dir gs://linelineline/work_dir \
                                     --output_dir gs://linelineline/models \
                                     --train_files gs://linelineline/work_dir/train* \
-                                    --eval_files gs://linelineline/work_dir/test*
-
+                                    --eval_files gs://linelineline/work_dir/eval*
+(the cmd sequence needs to be from required to nonrequired)
     gcloud ai-platform jobs submit training $JOB_NAME \
                                     --stream-logs \
                                     --runtime-version 1.14 \
                                     --python-version 3.5 \
-                                    --job-dir $GCS_JOB_DIR \
+                                    --staging-bucket gs://linelineline \
                                     --module-name task.task \
                                     --package-path task \
                                     --region us-central1 \
                                     --project airlinegcp \
                                     -- \
+                                    --train_steps 50000 \
                                     --tf_transform_dir gs://linelineline/work_dir \
-                                    --output_dir=gs://linelineline/models \
-                                    --train-steps 50000 \
-                                    --train_files=gs://linelineline/work_dir/train* \
-                                    --eval_files=gs://linelineline/work_dir/test*
+                                    --output_dir gs://linelineline/models \
+                                    --train_files gs://linelineline/work_dir/train* \
+                                    --eval_files gs://linelineline/work_dir/eval*
+
+tensorboard --logdir=gs://linelineline/models --port=8080

@@ -2,22 +2,21 @@ import argparse
 import os
 
 import tensorflow as tf
-# import tensorflow_model_analysis as tfma
 import tensorflow_transform as tft
 
 try:
-    from airline_demo.trainer import model
+    from airline_demo.ml.trainer import model
 except ImportError:
-    import model
+    from trainer import model
 
 SERVING_MODEL_DIR = 'serving_model_dir'
 EVAL_MODEL_DIR = 'eval_model_dir'
 
-TRAIN_BATCH_SIZE = 40
-EVAL_BATCH_SIZE = 40
+TRAIN_BATCH_SIZE = 100
+EVAL_BATCH_SIZE = 100
 
 # Number of nodes in the first layer of the DNN
-FIRST_DNN_LAYER_SIZE = 100
+FIRST_DNN_LAYER_SIZE = 150
 NUM_DNN_LAYERS = 4
 DNN_DECAY_FACTOR = 0.7
 
@@ -76,27 +75,6 @@ def train_and_maybe_evaluate(hparams):
     tf.estimator.train_and_evaluate(estimator, train_spec, eval_spec)
 
     return estimator
-
-# def run_experiment(hparams):
-#     """Train the model then export it for tf.model_analysis evaluation.
-
-#     Args:
-#         hparams: Holds hyperparameters used to train the model as name/value pairs.
-#     """
-#     estimator = train_and_maybe_evaluate(hparams)
-
-#     tf_transform_output = tft.TFTransformOutput(hparams.tf_transform_dir)
-
-    # Save a model for tfma eval
-    # eval_model_dir = os.path.join(hparams.output_dir, EVAL_MODEL_DIR)
-
-    # receiver_fn = lambda: model.eval_input_receiver_fn(
-    #         tf_transform_output)
-
-    # tfma.export.export_eval_savedmodel(
-    #         estimator=estimator,
-    #         export_dir_base=eval_model_dir,
-    #         eval_input_receiver_fn=receiver_fn)
 
 def main(argv=None):
     parser = argparse.ArgumentParser()
@@ -157,7 +135,6 @@ def main(argv=None):
     # Set python level verbosity
     tf.logging.set_verbosity(args.verbosity)
     hparams = args
-    # run_experiment(hparams)
 
     train_and_maybe_evaluate(hparams)
 

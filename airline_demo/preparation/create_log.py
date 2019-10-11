@@ -72,7 +72,6 @@ if __name__ == "__main__":
         # 'flexrs_goal=COST_OPTIMIZED',
         '--staging_location=gs://{}/tmp/staging1/'.format('linelineline'),
         '--temp_location=gs://{}/tmp/temp1/'.format('linelineline'),
-        # '--setup_file=./setup.py',
         '--max_num_workers=10',
         '--autoscaling_algorithm=THROUGHPUT_BASED',
         '--runner=DataflowRunner',
