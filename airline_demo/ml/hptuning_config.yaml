@@ -4,6 +4,7 @@ trainingInput:
     hyperparameterMetricTag: auc
     maxTrials: 10
     maxParallelTrials: 5
+    enableTrialEarlyStopping: True
     params:
       - parameterName: first_dnn_layer_size
         type: INTEGER
