@@ -2,7 +2,7 @@ import json
 import tensorflow as tf
 from tensorflow_transform.tf_metadata import dataset_metadata, schema_utils
 
-HASH_STRING_FEATURE_KEYS = {'MKT_UNIQUE_CARRIER':12, 'ORIGIN_AIRPORT_ID':373, 'DEST_AIRPORT_ID':373}
+HASH_STRING_FEATURE_KEYS = {'MKT_UNIQUE_CARRIER':12}
 
 CATEGORICAL_FEATURE_KEYS = list(HASH_STRING_FEATURE_KEYS.keys())
 
@@ -21,9 +21,9 @@ TO_BE_BUCKETIZED_FEATURE = {
 
 LABEL_KEY = 'cancel'
 
-ORDERED_COLUMNS = ['MKT_UNIQUE_CARRIER', 'ORIGIN_AIRPORT_ID', 'DEST_AIRPORT_ID',
+ORDERED_COLUMNS = ['cancel', 'MKT_UNIQUE_CARRIER',
                     'DEP_DELAY', 'DISTANCE', 
-                    'dep_lat', 'dep_lng', 'arr_lat', 'arr_lng', 'month', 'hour', 'cancel']
+                    'dep_lat', 'dep_lng', 'arr_lat', 'arr_lng', 'month', 'hour' ]
 
 def _create_raw_metadata():
     """Create a DatasetMetadata for the raw data."""

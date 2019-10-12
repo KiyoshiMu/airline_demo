@@ -171,9 +171,9 @@ def main(argv=None):
         pipeline_args = pipeline_args + ['--temp_location',
         os.path.join(args.working_dir, 'tmp')]
 
-    if '--staging_location' not in pipeline_args:
-        pipeline_args = pipeline_args + ['staging_location',
-        os.path.join(args.working_dir, 'tmp', 'staging')]
+    # if '--staging_location' not in pipeline_args:
+    #     pipeline_args = pipeline_args + ['staging_location',
+    #     os.path.join(args.working_dir, 'tmp', 'staging')]
 
     pipeline_options = beam.pipeline.PipelineOptions(pipeline_args)
 

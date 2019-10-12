@@ -91,7 +91,8 @@ def input_fn(filenames, tf_transform_output, batch_size=200):
             tf_transform_output.transformed_feature_spec().copy())
 
     dataset = tf.data.experimental.make_batched_features_dataset(
-        filenames, batch_size, transformed_feature_spec, reader=tf.data.TFRecordDataset)
+        filenames, batch_size, transformed_feature_spec, reader=tf.data.TFRecordDataset,
+        shuffle_buffer_size=100000)
 
     transformed_features = dataset.make_one_shot_iterator().get_next()
     # We pop the label because we do not want to use it as a feature while we're

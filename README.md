@@ -55,11 +55,14 @@ CLI are as below:
                                     --output_dir gs://linelineline/models \
                                     --train_files gs://linelineline/work_dir/train* \
                                     --eval_files gs://linelineline/work_dir/eval*
+
 (the cmd sequence needs to be from required to nonrequired)
+
     gcloud ai-platform jobs submit training $JOB_NAME \
                                     --stream-logs \
                                     --runtime-version 1.14 \
                                     --python-version 3.5 \
+                                    --config ./hptuning_config.yaml \
                                     --staging-bucket gs://linelineline \
                                     --module-name trainer.task \
                                     --package-path trainer \

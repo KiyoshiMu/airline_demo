@@ -12,13 +12,12 @@ except ImportError:
 SERVING_MODEL_DIR = 'serving_model_dir'
 EVAL_MODEL_DIR = 'eval_model_dir'
 
-TRAIN_BATCH_SIZE = 100
-EVAL_BATCH_SIZE = 100
+TRAIN_BATCH_SIZE = 200
+EVAL_BATCH_SIZE = 200
 
-# Number of nodes in the first layer of the DNN
-FIRST_DNN_LAYER_SIZE = 150
-NUM_DNN_LAYERS = 4
-DNN_DECAY_FACTOR = 0.7
+def my_metric(labels, predictions):
+    pred_values = predictions['logistic']
+    return {'auc': tf.metrics.auc(labels, pred_values)}
 
 def train_and_maybe_evaluate(hparams):
     """Run the training and evaluate using the high level API.
@@ -58,7 +57,8 @@ def train_and_maybe_evaluate(hparams):
             name='{}-eval'.format(tag))
 
     run_config = tf.estimator.RunConfig(
-            save_checkpoints_steps=999, keep_checkpoint_max=1)
+            # save_checkpoints_steps=999,
+            keep_checkpoint_max=1)
 
     serving_model_dir = os.path.join(hparams.output_dir, SERVING_MODEL_DIR)
     run_config = run_config.replace(model_dir=serving_model_dir)
@@ -67,10 +67,12 @@ def train_and_maybe_evaluate(hparams):
             run_config,
             # Construct layers sizes with exponetial decay
             hidden_units=[
-                    max(2, int(FIRST_DNN_LAYER_SIZE * DNN_DECAY_FACTOR**i))
-                    for i in range(NUM_DNN_LAYERS)
+                    max(2, int(hparams.first_dnn_layer_size * hparams.dnn_decay_factor**i))
+                    for i in range(hparams.num_dnn_layers)
             ]
             )
+
+    estimator = tf.estimator.add_metrics(estimator, my_metric)
 
     tf.estimator.train_and_evaluate(estimator, train_spec, eval_spec)
 
@@ -124,13 +126,32 @@ def main(argv=None):
     parser.add_argument(
             '--eval_steps',
             help='Number of steps to run evalution for at each checkpoint',
-            default=100,
+            default=200,
             type=int)
 
     parser.add_argument(
             '--tag',
             default='flights',
     )
+
+    parser.add_argument(
+            '--first_dnn_layer_size',
+            default=150,
+            type=int
+    )
+
+    parser.add_argument(
+            '--num_dnn_layers',
+            default=4,
+            type=int
+    )
+
+    parser.add_argument(
+            '--dnn_decay_factor',
+            default=0.7,
+            type=float
+    )
+    
     args = parser.parse_args(argv)
     # Set python level verbosity
     tf.logging.set_verbosity(args.verbosity)
