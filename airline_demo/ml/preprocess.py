@@ -88,6 +88,7 @@ def transform_data(train_data_file,
                                                                skip_header_lines=1)
                     | 'Train:RemoveNull' >> beam.ParDo(RemoveNull()).with_outputs('Y', 'N'))
             raw_data = (raw_data_.Y
+                    | 'Train:Reshuffle' >> beam.Reshuffle()
                     | 'Train:Decode' >> beam.Map(converter.decode))
 
             raw_dataset = (raw_data, RAW_DATA_METADATA)
@@ -108,6 +109,7 @@ def transform_data(train_data_file,
                                                               skip_header_lines=1)
                     | 'Test:RemoveNull' >> beam.ParDo(RemoveNull()).with_outputs('Y', 'N'))
             raw_test_data = (raw_test_data_.Y
+                    | 'Test:Reshuffle' >> beam.Reshuffle()
                     | 'Test:DecodeData' >> beam.Map(converter.decode))
 
             raw_test_dataset = (raw_test_data, RAW_DATA_METADATA)
