@@ -1,5 +1,6 @@
 import argparse
 import os
+import time
 
 import tensorflow as tf
 import tensorflow_transform as tft
@@ -60,7 +61,10 @@ def train_and_maybe_evaluate(hparams):
             # save_checkpoints_steps=999,
             keep_checkpoint_max=1)
 
-    serving_model_dir = os.path.join(hparams.output_dir, SERVING_MODEL_DIR)
+    # serving_model_dir = os.path.join(hparams.output_dir, SERVING_MODEL_DIR)
+    serving_model_dir = os.path.join(hparams.output_dir, 
+                            '{}_serving'.format(int(time.time())))
+
     run_config = run_config.replace(model_dir=serving_model_dir)
 
     estimator = model.build_estimator(
