@@ -7,8 +7,8 @@ import tensorflow_transform as tft
 
 if __name__ == "__main__":
     ARGV1 = [
-        '--train-data-file=gs://linelineline/raw_data/train-*',
-        '--test-data-file=gs://linelineline/raw_data/eval-*',
+        '--train-data-file=gs://linelineline/for_ai/train*',
+        '--test-data-file=gs://linelineline/for_ai/eval*',
         '--root-train-data-out=train',
         '--root-test-data-out=eval',
         '--working-dir=gs://linelineline/work_dir',
