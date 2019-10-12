@@ -1,6 +1,5 @@
 import argparse
 import os
-import time
 
 import tensorflow as tf
 import tensorflow_transform as tft
@@ -63,7 +62,7 @@ def train_and_maybe_evaluate(hparams):
 
     # serving_model_dir = os.path.join(hparams.output_dir, SERVING_MODEL_DIR)
     serving_model_dir = os.path.join(hparams.output_dir, 
-                            '{}_serving'.format(int(time.time())))
+                            '{}_serving'.format(hparams.first_dnn_layer_size))
 
     run_config = run_config.replace(model_dir=serving_model_dir)
 
