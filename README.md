@@ -30,10 +30,21 @@ We want to use it to demostrate how to create a pipeline on GCP. Also, batch dat
 
 #### GCP
 
- 1. Monthly Data Download: Cloud Schedule -> Cloud Pub/Sub -> Cloud Function -> Cloud VM -> Cloud Pub/Sub -> Cloud Function -> Cloud VM
- 2. Data Preparison: Cloud Dataflow
- 3. Data Exploration: Bigquery
+##### 1. Monthly Data Download: Cloud Schedule -> Cloud Pub/Sub -> Cloud Function -> Cloud VM -> Cloud Pub/Sub -> Cloud Function -> Cloud VM
 
+##### 2. Data Preparison: Cloud Dataflow
+
+Dataflow is a data preprocessing tool. Like Spark or other big data tools, it can handel large data, like 1 TB or more. But also, it can deal with normal size data. Apache Beam is its "master", or say, Dataflow is one kind of Apache Beam's runner. Apache Beam abstracts data processing pipeline. As a result, we don't need to care about the hardware, the language, the platform or even whether it's batch data or streaming data. We only need to implement HOW to process data, focus on the data flow only.
+
+Besides, Dataflow can automamtic adjust the machine number to save the cost. The cost is base on the nummber of CUP and the time you used. Thus, using 1000 CPUs to precess 1 hour has the same cost of using 1 CUP to process 1000 hours. (Still the time to provision machines is included, so 1000 CPUs will have higher preparsion time and thus higher cost). If we can solve a problem in 1 hour, why we wait 1000 hours.
+
+##### 3. Data Exploration: Bigquery + Datastudio
+
+In bigquery, we can query basic questions we are interested, like whether some carriers are more likely to have delay or whether the season can influence the flights' delay. There data can be driven into Datastudio, a visulation tool based on bigquery. Here, I show the result of our question above. It's clear that the type of carrier, the season, the distence and the locations have relations with the delay, which fit our intuition well (I know we are more excited for something anti-intuition)
+
+Bigquery is the data wearhouse, its cost is equvelent to the cost of Google Storage. As a result, the cost will not increase if we store the data in this place where we can interact with the data.
+
+Also, it's not just restricted in essential SQL functions. We can build a logistic model here as a baseline for our future sophistic deep learning model.
 
 ### Ai-platform
 
@@ -75,4 +86,4 @@ CLI are as below:
                                     --train_files gs://linelineline/work_dir/train* \
                                     --eval_files gs://linelineline/work_dir/eval*
 
-tensorboard --logdir=gs://linelineline/models --port=8080
+    tensorboard --logdir=gs://linelineline/models --port=8080
