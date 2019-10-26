@@ -2,21 +2,21 @@ import json
 import tensorflow as tf
 from tensorflow_transform.tf_metadata import dataset_metadata, schema_utils
 
-HASH_STRING_FEATURE_KEYS = {'MKT_UNIQUE_CARRIER':12}
+HASH_STRING_FEATURE_KEYS = {'MKT_UNIQUE_CARRIER':15}
 
 CATEGORICAL_FEATURE_KEYS = list(HASH_STRING_FEATURE_KEYS.keys())
 
 # CATEGORICAL_FEATURE_KEYS_TO_BE_REMOVED = []
 
 NUMERIC_FEATURE_KEYS = ['arr_lat', 'dep_lat', 'dep_lng', 'arr_lng','DEP_DELAY', 
-                        'DISTANCE', 
+                        'DISTANCE',
         ]
 NUMERIC_FEATURE_KEYS_INT = ['hour', 'month']
 
 # NUMERIC_FEATURE_KEYS_TO_BE_REMOVED = []
 
 TO_BE_BUCKETIZED_FEATURE = {
-     'arr_lat':6, 'dep_lat':6, 'dep_lng':6, 'arr_lng':6,
+     'arr_lat':6, 'dep_lat':6, 'dep_lng':6, 'arr_lng':6, 'hour':24, 'month':12
 }
 
 LABEL_KEY = 'cancel'

@@ -5,8 +5,8 @@ import tensorflow_transform as tft
 
 if __name__ == "__main__":
     ARGV1 = [
-        '--train-data-file=data/train.csv',
-        '--test-data-file=data/eval.csv',
+        '--train-data-file=data/train_local.csv',
+        '--test-data-file=data/eval_local.csv',
         '--root-train-data-out=train',
         '--root-test-data-out=eval',
         '--working-dir=work_dir'
@@ -19,7 +19,8 @@ if __name__ == "__main__":
         '--output_dir=models',
         '--eval_files=work_dir/eval*',
         '--train_steps=10000',
-        '--num_dnn_layers=6'
+        '--num_dnn_layers=3',
+        '--first_dnn_layer_size=30',
         # '--tag=flights'
         #  '--job_dir',
     ]

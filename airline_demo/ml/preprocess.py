@@ -30,9 +30,9 @@ def preprocessing_fn(inputs):
     """Preprocess input columns into transformed columns."""
     outputs = {}
 
-    # Scale numeric columns to have range [-1, 1].
+    # Scale numeric columns to have range [0, 1].
     for key in NUMERIC_FEATURE_KEYS:
-        outputs[key] = tft.scale_to_z_score(inputs[key])
+        outputs[key] = tft.scale_to_0_1(inputs[key])
 
     # bucketize numeric columns
     for key in TO_BE_BUCKETIZED_FEATURE:
@@ -49,9 +49,14 @@ def preprocessing_fn(inputs):
 
     return outputs
 
-def _convert_label(label):
-
-    return tf.dtypes.cast(label > 10, tf.int64)
+class Shuffle(beam.PTransform):
+    """Shuffles a PCollection.  Collection should not contain duplicates."""
+    def expand(self, pcoll):
+        return (pcoll
+          | 'PairWithHash' >> beam.Map(lambda x: (hash(x), x))
+          | 'GroupByHash' >> beam.GroupByKey()
+          | 'DropHash' >> beam.FlatMap(
+              lambda hash_and_values: hash_and_values[1]))
 
 # Functions for preprocessing
 def transform_data(train_data_file,
@@ -88,7 +93,7 @@ def transform_data(train_data_file,
                                                                skip_header_lines=1)
                     | 'Train:RemoveNull' >> beam.ParDo(RemoveNull()).with_outputs('Y', 'N'))
             raw_data = (raw_data_.Y
-                    | 'Train:Reshuffle' >> beam.Reshuffle()
+                    | 'Train:Reshuffle' >> Shuffle()
                     | 'Train:Decode' >> beam.Map(converter.decode))
 
             raw_dataset = (raw_data, RAW_DATA_METADATA)
@@ -109,7 +114,7 @@ def transform_data(train_data_file,
                                                               skip_header_lines=1)
                     | 'Test:RemoveNull' >> beam.ParDo(RemoveNull()).with_outputs('Y', 'N'))
             raw_test_data = (raw_test_data_.Y
-                    | 'Test:Reshuffle' >> beam.Reshuffle()
+                    | 'Test:Reshuffle' >> Shuffle()
                     | 'Test:DecodeData' >> beam.Map(converter.decode))
 
             raw_test_dataset = (raw_test_data, RAW_DATA_METADATA)
