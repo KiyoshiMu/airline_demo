@@ -1,6 +1,7 @@
 import argparse
 import os
 import logging
+import math
 
 import tensorflow as tf
 import tensorflow_transform as tft
@@ -24,33 +25,75 @@ TO_BE_BUCKETIZED_FEATURE = input_metadata.TO_BE_BUCKETIZED_FEATURE
 def get_raw_feature_spec():
     return schema_utils.schema_as_feature_spec(RAW_DATA_METADATA.schema).feature_spec
 
-def build_estimator(config, hidden_units=None):
+def build_estimator(config, hidden_units=None, wide=False):
+
+    cross_arr = round(1.25 # 80% buckets bu used
+                     * TO_BE_BUCKETIZED_FEATURE['arr_lat'] 
+                     * TO_BE_BUCKETIZED_FEATURE['arr_lng'])
+    cross_dep = round(1.25
+                     * TO_BE_BUCKETIZED_FEATURE['dep_lat']
+                     * TO_BE_BUCKETIZED_FEATURE['dep_lng'])
 
     real_valued_columns = [
         tf.feature_column.numeric_column(key, shape=())
         for key in NUMERIC_FEATURE_KEYS]
 
-    categorical_columns = [
-        tf.feature_column.indicator_column(
+    real_valued_columns.extend([
+        tf.feature_column.embedding_column(
             tf.feature_column.categorical_column_with_identity(
-            key, num_buckets=HASH_STRING_FEATURE_KEYS[key], default_value=0))
+                key, num_buckets=HASH_STRING_FEATURE_KEYS[key], default_value=0),
+            math.ceil(HASH_STRING_FEATURE_KEYS[key]**0.25))
+        for key in HASH_STRING_FEATURE_KEYS])
+    
+    real_valued_columns.extend([
+        tf.feature_column.embedding_column(
+            tf.feature_column.categorical_column_with_identity(
+            '{}_b'.format(key), num_buckets=TO_BE_BUCKETIZED_FEATURE[key], default_value=0),
+            math.ceil(TO_BE_BUCKETIZED_FEATURE[key]**0.25))
+            for key in TO_BE_BUCKETIZED_FEATURE])
+
+    real_valued_columns.extend([
+        tf.feature_column.embedding_column(
+            tf.feature_column.crossed_column(['arr_lat_b', 'arr_lng_b'], cross_arr),
+            math.ceil(cross_arr**0.25)),
+        tf.feature_column.embedding_column(
+            tf.feature_column.crossed_column(['dep_lat_b', 'dep_lng_b'], cross_dep),
+            math.ceil(cross_dep**0.25))
+        ])
+
+    categorical_columns = [
+            tf.feature_column.categorical_column_with_identity(
+            key, num_buckets=HASH_STRING_FEATURE_KEYS[key], default_value=0)
         for key in HASH_STRING_FEATURE_KEYS]
     
     categorical_columns.extend([
-        tf.feature_column.indicator_column(
             tf.feature_column.categorical_column_with_identity(
-            '{}_b'.format(key), num_buckets=TO_BE_BUCKETIZED_FEATURE[key], default_value=0))
+            '{}_b'.format(key), num_buckets=TO_BE_BUCKETIZED_FEATURE[key], default_value=0)
             for key in TO_BE_BUCKETIZED_FEATURE])
 
     categorical_columns.extend([
-        tf.feature_column.indicator_column(
-            tf.feature_column.crossed_column(['arr_lat_b', 'arr_lng_b'], 36)),
-        tf.feature_column.indicator_column(
-            tf.feature_column.crossed_column(['dep_lat_b', 'dep_lng_b'], 36))
-    ])
-    
+            tf.feature_column.crossed_column(['arr_lat_b', 'arr_lng_b'], cross_arr),
+            tf.feature_column.crossed_column(['dep_lat_b', 'dep_lng_b'], cross_dep)
+        ])
+
+    linear_column_num = (sum(HASH_STRING_FEATURE_KEYS[key] for key in HASH_STRING_FEATURE_KEYS)
+                        + sum(TO_BE_BUCKETIZED_FEATURE[key] for key in TO_BE_BUCKETIZED_FEATURE)
+                        + cross_arr
+                        + cross_dep)
+
+    FtrlOptimizer_lr = min(0.2, 1/math.sqrt(linear_column_num))
+    if wide:
+        return tf.estimator.DNNLinearCombinedClassifier(config=config,
+                                    linear_feature_columns=real_valued_columns,
+                                    linear_optimizer=tf.train.FtrlOptimizer(FtrlOptimizer_lr),
+                                    dnn_feature_columns=real_valued_columns,
+                                    dnn_optimizer=tf.train.AdagradOptimizer(
+                                        FtrlOptimizer_lr/4),
+                                    dnn_hidden_units=hidden_units or [70, 50, 25])
+
     return tf.estimator.DNNClassifier(config=config,
-                                    feature_columns=real_valued_columns+categorical_columns,
+                                    feature_columns=real_valued_columns,
+                                    optimizer=tf.train.AdagradOptimizer( FtrlOptimizer_lr/4),
                                     hidden_units=hidden_units or [70, 50, 25])
 
 def example_serving_receiver_fn(tf_transform_output):

@@ -71,8 +71,8 @@ def train_and_maybe_evaluate(hparams):
             # Construct layers sizes with exponetial decay
             hidden_units=[
                     max(2, int(hparams.first_dnn_layer_size * hparams.dnn_decay_factor**i))
-                    for i in range(hparams.num_dnn_layers)
-            ]
+                    for i in range(hparams.num_dnn_layers)],
+            wide=hparams.wide
             )
 
     estimator = tf.estimator.add_metrics(estimator, my_metric)
@@ -151,10 +151,15 @@ def main(argv=None):
 
     parser.add_argument(
             '--dnn_decay_factor',
-            default=0.7,
+            default=1.0,
             type=float
     )
-    
+
+    parser.add_argument(
+            '--wide',
+            type=bool,
+            default=True)
+
     args = parser.parse_args(argv)
     # Set python level verbosity
     tf.logging.set_verbosity(args.verbosity)

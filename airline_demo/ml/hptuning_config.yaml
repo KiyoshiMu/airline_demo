@@ -2,22 +2,22 @@ trainingInput:
   hyperparameters:
     goal: MAXIMIZE
     hyperparameterMetricTag: auc
-    maxTrials: 10
-    maxParallelTrials: 5
+    maxTrials: 9
+    maxParallelTrials: 3
     enableTrialEarlyStopping: True
     params:
       - parameterName: first_dnn_layer_size
         type: INTEGER
-        minValue: 50
-        maxValue: 500
+        minValue: 20
+        maxValue: 200
         scaleType: UNIT_LINEAR_SCALE
       - parameterName: num_dnn_layers
         type: INTEGER
         minValue: 3
-        maxValue: 15
+        maxValue: 10
         scaleType: UNIT_LINEAR_SCALE
       - parameterName: dnn_decay_factor
         type: DOUBLE
-        minValue: 0.1
+        minValue: 0.7
         maxValue: 1.0
         scaleType: UNIT_REVERSE_LOG_SCALE

@@ -87,3 +87,6 @@ CLI are as below:
                                     --eval_files gs://linelineline/work_dir/eval*
 
     tensorboard --logdir=gs://linelineline/models --port=8080
+
+
+while IFS= read -r line; do gsutil rm "gs://linelineline/for_ai/$line"; done < delf

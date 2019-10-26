@@ -19,7 +19,7 @@ if __name__ == "__main__":
         '--flexrs_goal=COST_OPTIMIZED',
         '--project=airlinegcp'
     ]
-    preprocess.main(ARGV1)
+    # preprocess.main(ARGV1)
 
     # ARGV2 = [
     #     '--train_files=gs://linelineline/work_dir/train*',
@@ -33,8 +33,8 @@ if __name__ == "__main__":
 
     # task.main(ARGV2)
     
-    # tf_transform_output = tft.TFTransformOutput('work_dir')
+    tf_transform_output = tft.TFTransformOutput('work_dir')
     # print(model.eval_input_receiver_fn(tf_transform_output))
-    # fn = 'work_dir/train*'
+    fn = 'work_dir/train*'
     # print(model.get_raw_feature_spec())
-    # print(model.input_fn(fn, tf_transform_output))
+    print(model.input_fn(fn, tf_transform_output))
