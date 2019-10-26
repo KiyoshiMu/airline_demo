@@ -1,7 +1,7 @@
 from setuptools import find_packages
 from setuptools import setup
 
-REQUIRED_PACKAGES = ['tensorflow-transform', 'tensorflow', 'ipython']
+REQUIRED_PACKAGES = ['tensorflow-transform', 'tensorflow']
 
 setup(
     name='flight',

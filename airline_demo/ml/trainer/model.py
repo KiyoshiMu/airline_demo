@@ -118,7 +118,7 @@ def example_serving_receiver_fn(tf_transform_output):
     return tf.estimator.export.ServingInputReceiver(
       transformed_features, serving_input_receiver.receiver_tensors)
 
-def input_fn(filenames, tf_transform_output, batch_size=200):
+def input_fn(filenames, tf_transform_output, batch_size=400):
     """Generates features and labels for training or evaluation.
 
     Args:
