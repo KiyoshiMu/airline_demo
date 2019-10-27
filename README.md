@@ -69,6 +69,10 @@ CLI are as below:
 
 (the cmd sequence needs to be from required to nonrequired)
 
+    DATE=`date '+%Y%m%d_%H%M%S'`
+    export JOB_NAME=flight_$DATE
+    export GCS_JOB_DIR=gs://linelineline/jobs/$JOB_NAME
+
     gcloud ai-platform jobs submit training $JOB_NAME \
                                     --stream-logs \
                                     --runtime-version 1.14 \
@@ -82,7 +86,7 @@ CLI are as below:
                                     -- \
                                     --train_steps 50000 \
                                     --tf_transform_dir gs://linelineline/work_dir \
-                                    --output_dir gs://linelineline/models \
+                                    --output_dir gs://linelineline/cusmodels_plus_ \
                                     --train_files gs://linelineline/work_dir/train* \
                                     --eval_files gs://linelineline/work_dir/eval*
 
@@ -90,3 +94,14 @@ CLI are as below:
 
 
 while IFS= read -r line; do gsutil rm "gs://linelineline/for_ai/$line"; done < delf
+
+rm -rf /opt/conda && \
+rm /etc/profile.d/conda.sh && \
+wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
+/bin/bash ~/miniconda.sh -b -p /opt/conda && \
+rm ~/miniconda.sh && \
+/opt/conda/bin/conda clean -tipsy && \
+ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
+echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \
+echo "conda activate base" >> ~/.bashrc && \
+echo "succeed"

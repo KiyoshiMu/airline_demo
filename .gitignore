@@ -1,0 +1,12 @@
+*__pycache__
+*.zip
+.*
+data*
+_[!_]*
+tmp
+work_dir
+models
+local*
+tfma*
+*.ipynb
+!.gitignore

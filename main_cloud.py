@@ -16,7 +16,7 @@ if __name__ == "__main__":
         '--region=us-central1',
         f'--job_name=preprocess{int(time.time())}',
         '--setup_file=./setup.py',
-        '--flexrs_goal=COST_OPTIMIZED',
+        # '--flexrs_goal=COST_OPTIMIZED',
         '--project=airlinegcp'
     ]
     preprocess.main(ARGV1)

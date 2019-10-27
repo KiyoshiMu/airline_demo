@@ -7,6 +7,7 @@ import tensorflow as tf
 import tensorflow_transform as tft
 import tensorflow_transform.beam as tft_beam
 from tensorflow_transform.tf_metadata import schema_utils
+import tensorflow_model_analysis as tfma
 
 try:
     from airline_demo.ml.trainer import input_metadata
@@ -15,7 +16,7 @@ except ImportError:
 
 tf.config.optimizer.set_jit(True)
 
-HASH_STRING_FEATURE_KEYS = input_metadata.HASH_STRING_FEATURE_KEYS
+VOC_STRING_FEATURE_KEYS = input_metadata.VOC_STRING_FEATURE_KEYS
 LABEL_KEY = input_metadata.LABEL_KEY
 NUMERIC_FEATURE_KEYS = input_metadata.NUMERIC_FEATURE_KEYS
 ORDERED_COLUMNS = input_metadata.ORDERED_COLUMNS
@@ -39,11 +40,15 @@ def build_estimator(config, hidden_units=None, wide=False):
         for key in NUMERIC_FEATURE_KEYS]
 
     real_valued_columns.extend([
+        tf.feature_column.numeric_column(key, shape=())
+        for key in TO_BE_BUCKETIZED_FEATURE])
+
+    real_valued_columns.extend([
         tf.feature_column.embedding_column(
             tf.feature_column.categorical_column_with_identity(
-                key, num_buckets=HASH_STRING_FEATURE_KEYS[key], default_value=0),
-            math.ceil(HASH_STRING_FEATURE_KEYS[key]**0.25))
-        for key in HASH_STRING_FEATURE_KEYS])
+                key, num_buckets=VOC_STRING_FEATURE_KEYS[key], default_value=0),
+            math.ceil(VOC_STRING_FEATURE_KEYS[key]**0.25))
+        for key in VOC_STRING_FEATURE_KEYS])
     
     real_valued_columns.extend([
         tf.feature_column.embedding_column(
@@ -63,8 +68,8 @@ def build_estimator(config, hidden_units=None, wide=False):
 
     categorical_columns = [
             tf.feature_column.categorical_column_with_identity(
-            key, num_buckets=HASH_STRING_FEATURE_KEYS[key], default_value=0)
-        for key in HASH_STRING_FEATURE_KEYS]
+            key, num_buckets=VOC_STRING_FEATURE_KEYS[key], default_value=0)
+        for key in VOC_STRING_FEATURE_KEYS]
     
     categorical_columns.extend([
             tf.feature_column.categorical_column_with_identity(
@@ -76,7 +81,7 @@ def build_estimator(config, hidden_units=None, wide=False):
             tf.feature_column.crossed_column(['dep_lat_b', 'dep_lng_b'], cross_dep)
         ])
 
-    linear_column_num = (sum(HASH_STRING_FEATURE_KEYS[key] for key in HASH_STRING_FEATURE_KEYS)
+    linear_column_num = (sum(VOC_STRING_FEATURE_KEYS[key] for key in VOC_STRING_FEATURE_KEYS)
                         + sum(TO_BE_BUCKETIZED_FEATURE[key] for key in TO_BE_BUCKETIZED_FEATURE)
                         + cross_arr
                         + cross_dep)
@@ -95,6 +100,38 @@ def build_estimator(config, hidden_units=None, wide=False):
                                     feature_columns=real_valued_columns,
                                     optimizer=tf.train.AdagradOptimizer( FtrlOptimizer_lr/4),
                                     hidden_units=hidden_units or [70, 50, 25])
+
+def eval_input_receiver_fn(tf_transform_output):
+    """Build everything needed for the tf-model-analysis to run the model.
+
+    Args:
+        tf_transform_output: A TFTransformOutput.
+
+    Returns:
+        EvalInputReceiver function, which contains:
+            - Tensorflow graph which parses raw untranformed features, applies the
+                tf-transform preprocessing operators.
+            - Set of raw, untransformed features.
+            - Label against which predictions will be compared.
+    """
+    raw_feature_spec = get_raw_feature_spec()
+
+    serialized_tf_example = tf.placeholder(
+            dtype=tf.string, shape=[None], name='input_example_tensor')
+
+    features = tf.parse_example(serialized_tf_example, raw_feature_spec)
+
+    transformed_features = tf_transform_output.transform_raw_features(
+            features)
+
+    receiver_tensors = {'examples': serialized_tf_example}
+
+    features.update(transformed_features)
+
+    return tfma.export.EvalInputReceiver(
+            features=features,
+            receiver_tensors=receiver_tensors,
+            labels=transformed_features[LABEL_KEY])
 
 def example_serving_receiver_fn(tf_transform_output):
     """Build the serving in inputs.
