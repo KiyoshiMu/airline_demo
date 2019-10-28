@@ -10,7 +10,7 @@ import tensorflow_transform.beam as tft_beam
 
 from airline_demo.ml.trainer import input_metadata
 
-VOC_STRING_FEATURE_KEYS = input_metadata.VOC_STRING_FEATURE_KEYS
+HASH_STRING_FEATURE_KEYS = input_metadata.HASH_STRING_FEATURE_KEYS
 LABEL_KEY = input_metadata.LABEL_KEY
 NUMERIC_FEATURE_KEYS = input_metadata.NUMERIC_FEATURE_KEYS
 NUMERIC_FEATURE_KEYS_INT = input_metadata.NUMERIC_FEATURE_KEYS_INT
@@ -45,8 +45,8 @@ def preprocessing_fn(inputs):
             TO_BE_BUCKETIZED_FEATURE[key]
         )
 
-    for key in VOC_STRING_FEATURE_KEYS:
-        outputs[key] = tft.compute_and_apply_vocabulary(inputs[key])
+    for key in HASH_STRING_FEATURE_KEYS:
+        outputs[key] = tft.hash_strings(inputs[key], HASH_STRING_FEATURE_KEYS[key])
 
     # For the label column we transform it either 0 or 1 if there are row leads
     outputs[LABEL_KEY] = inputs[LABEL_KEY]

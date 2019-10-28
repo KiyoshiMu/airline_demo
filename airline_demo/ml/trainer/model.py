@@ -16,7 +16,7 @@ except ImportError:
 
 tf.config.optimizer.set_jit(True)
 
-VOC_STRING_FEATURE_KEYS = input_metadata.VOC_STRING_FEATURE_KEYS
+HASH_STRING_FEATURE_KEYS = input_metadata.HASH_STRING_FEATURE_KEYS
 LABEL_KEY = input_metadata.LABEL_KEY
 NUMERIC_FEATURE_KEYS = input_metadata.NUMERIC_FEATURE_KEYS
 NUMERIC_FEATURE_KEYS_INT = input_metadata.NUMERIC_FEATURE_KEYS_INT
@@ -47,9 +47,9 @@ def build_estimator(config, hidden_units=None, wide=False):
     real_valued_columns.extend([
         tf.feature_column.embedding_column(
             tf.feature_column.categorical_column_with_identity(
-                key, num_buckets=VOC_STRING_FEATURE_KEYS[key], default_value=0),
-            math.ceil(VOC_STRING_FEATURE_KEYS[key]**0.25))
-        for key in VOC_STRING_FEATURE_KEYS])
+                key, num_buckets=HASH_STRING_FEATURE_KEYS[key], default_value=0),
+            math.ceil(HASH_STRING_FEATURE_KEYS[key]**0.25))
+        for key in HASH_STRING_FEATURE_KEYS])
     
     real_valued_columns.extend([
         tf.feature_column.embedding_column(
@@ -69,8 +69,8 @@ def build_estimator(config, hidden_units=None, wide=False):
 
     categorical_columns = [
             tf.feature_column.categorical_column_with_identity(
-            key, num_buckets=VOC_STRING_FEATURE_KEYS[key], default_value=0)
-        for key in VOC_STRING_FEATURE_KEYS]
+            key, num_buckets=HASH_STRING_FEATURE_KEYS[key], default_value=0)
+        for key in HASH_STRING_FEATURE_KEYS]
     
     categorical_columns.extend([
             tf.feature_column.categorical_column_with_identity(
@@ -82,7 +82,7 @@ def build_estimator(config, hidden_units=None, wide=False):
             tf.feature_column.crossed_column(['dep_lat_b', 'dep_lng_b'], cross_dep)
         ])
 
-    linear_column_num = (sum(VOC_STRING_FEATURE_KEYS[key] for key in VOC_STRING_FEATURE_KEYS)
+    linear_column_num = (sum(HASH_STRING_FEATURE_KEYS[key] for key in HASH_STRING_FEATURE_KEYS)
                         + sum(TO_BE_BUCKETIZED_FEATURE[key] for key in TO_BE_BUCKETIZED_FEATURE)
                         + cross_arr
                         + cross_dep)
@@ -99,7 +99,7 @@ def build_estimator(config, hidden_units=None, wide=False):
 
     return tf.estimator.DNNClassifier(config=config,
                                     feature_columns=real_valued_columns,
-                                    optimizer=tf.train.AdagradOptimizer( FtrlOptimizer_lr/4),
+                                    optimizer=tf.train.AdagradOptimizer(FtrlOptimizer_lr/4),
                                     hidden_units=hidden_units or [70, 50, 25])
 
 def eval_input_receiver_fn(tf_transform_output):
