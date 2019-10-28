@@ -57,13 +57,13 @@ CLI are as below:
     export GCS_JOB_DIR=gs://linelineline/jobs/$JOB_NAME
 
     gcloud ai-platform local train\
-                                    --module-name task.task \
-                                    --package-path task \
+                                    --module-name trainer.task \
+                                    --package-path trainer \
                                     --project airlinegcp \
                                     -- \
                                     --train_steps 1000 \
                                     --tf_transform_dir gs://linelineline/work_dir \
-                                    --output_dir gs://linelineline/models \
+                                    --output_dir gs://linelineline/tmpmodels \
                                     --train_files gs://linelineline/work_dir/train* \
                                     --eval_files gs://linelineline/work_dir/eval*
 

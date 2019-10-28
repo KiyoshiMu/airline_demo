@@ -19,6 +19,7 @@ tf.config.optimizer.set_jit(True)
 VOC_STRING_FEATURE_KEYS = input_metadata.VOC_STRING_FEATURE_KEYS
 LABEL_KEY = input_metadata.LABEL_KEY
 NUMERIC_FEATURE_KEYS = input_metadata.NUMERIC_FEATURE_KEYS
+NUMERIC_FEATURE_KEYS_INT = input_metadata.NUMERIC_FEATURE_KEYS_INT
 ORDERED_COLUMNS = input_metadata.ORDERED_COLUMNS
 RAW_DATA_METADATA = input_metadata.RAW_DATA_METADATA
 TO_BE_BUCKETIZED_FEATURE = input_metadata.TO_BE_BUCKETIZED_FEATURE
@@ -41,7 +42,7 @@ def build_estimator(config, hidden_units=None, wide=False):
 
     real_valued_columns.extend([
         tf.feature_column.numeric_column(key, shape=())
-        for key in TO_BE_BUCKETIZED_FEATURE])
+        for key in NUMERIC_FEATURE_KEYS_INT])
 
     real_valued_columns.extend([
         tf.feature_column.embedding_column(

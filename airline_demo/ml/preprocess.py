@@ -13,6 +13,7 @@ from airline_demo.ml.trainer import input_metadata
 VOC_STRING_FEATURE_KEYS = input_metadata.VOC_STRING_FEATURE_KEYS
 LABEL_KEY = input_metadata.LABEL_KEY
 NUMERIC_FEATURE_KEYS = input_metadata.NUMERIC_FEATURE_KEYS
+NUMERIC_FEATURE_KEYS_INT = input_metadata.NUMERIC_FEATURE_KEYS_INT
 ORDERED_COLUMNS = input_metadata.ORDERED_COLUMNS
 RAW_DATA_METADATA = input_metadata.RAW_DATA_METADATA
 TO_BE_BUCKETIZED_FEATURE = input_metadata.TO_BE_BUCKETIZED_FEATURE
@@ -32,6 +33,9 @@ def preprocessing_fn(inputs):
 
     # Scale numeric columns to have range [0, 1].
     for key in NUMERIC_FEATURE_KEYS:
+        outputs[key] = tft.scale_to_0_1(inputs[key])
+
+    for key in NUMERIC_FEATURE_KEYS_INT:
         outputs[key] = tft.scale_to_0_1(inputs[key])
 
     # bucketize numeric columns
