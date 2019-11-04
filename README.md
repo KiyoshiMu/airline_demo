@@ -30,7 +30,7 @@ We want to use it to demostrate how to create a pipeline on GCP. Also, batch dat
 
 #### GCP
 
-##### 1. Monthly Data Download: Cloud Schedule -> Cloud Pub/Sub -> Cloud Function -> Cloud VM -> Cloud Pub/Sub -> Cloud Function -> Cloud VM
+##### 1. Monthly Data Download: Cloud Schedule -> Cloud Pub/Sub -> Cloud Function
 
 ##### 2. Data Preparison: Cloud Dataflow
 
@@ -48,60 +48,3 @@ Also, it's not just restricted in essential SQL functions. We can build a logist
 
 ### Ai-platform
 
-(tfma makes a lot of trouble and is useless)
-
-CLI are as below:
-
-    DATE=`date '+%Y%m%d_%H%M%S'`
-    export JOB_NAME=flight_$DATE
-    export GCS_JOB_DIR=gs://linelineline/jobs/$JOB_NAME
-
-    gcloud ai-platform local train\
-                                    --module-name trainer.task \
-                                    --package-path trainer \
-                                    --project airlinegcp \
-                                    -- \
-                                    --train_steps 1000 \
-                                    --tf_transform_dir gs://linelineline/work_dir \
-                                    --output_dir gs://linelineline/tmpmodels \
-                                    --train_files gs://linelineline/work_dir/train* \
-                                    --eval_files gs://linelineline/work_dir/eval*
-
-(the cmd sequence needs to be from required to nonrequired)
-
-    DATE=`date '+%Y%m%d_%H%M%S'`
-    export JOB_NAME=flight_$DATE
-    export GCS_JOB_DIR=gs://linelineline/jobs/$JOB_NAME
-
-    gcloud ai-platform jobs submit training $JOB_NAME \
-                                    --stream-logs \
-                                    --runtime-version 1.14 \
-                                    --python-version 3.5 \
-                                    --config ./hptuning_config.yaml \
-                                    --staging-bucket gs://linelineline \
-                                    --module-name trainer.task \
-                                    --package-path trainer \
-                                    --region us-central1 \
-                                    --project airlinegcp \
-                                    -- \
-                                    --train_steps 50000 \
-                                    --tf_transform_dir gs://linelineline/work_dir \
-                                    --output_dir gs://linelineline/cusmodels_plus_ \
-                                    --train_files gs://linelineline/work_dir/train* \
-                                    --eval_files gs://linelineline/work_dir/eval*
-
-    tensorboard --logdir=gs://linelineline/models --port=8080
-
-
-while IFS= read -r line; do gsutil rm "gs://linelineline/for_ai/$line"; done < delf
-
-rm -rf /opt/conda && \
-rm /etc/profile.d/conda.sh && \
-wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
-/bin/bash ~/miniconda.sh -b -p /opt/conda && \
-rm ~/miniconda.sh && \
-/opt/conda/bin/conda clean -tipsy && \
-ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh && \
-echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \
-echo "conda activate base" >> ~/.bashrc && \
-echo "succeed"
