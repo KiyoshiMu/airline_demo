@@ -3,6 +3,7 @@ import os
 
 import tensorflow as tf
 import tensorflow_transform as tft
+import tensorflow_model_analysis as tfma
 
 try:
     from airline_demo.ml.trainer import model
@@ -12,8 +13,8 @@ except ImportError:
 SERVING_MODEL_DIR = 'serving_model_dir'
 EVAL_MODEL_DIR = 'eval_model_dir'
 
-TRAIN_BATCH_SIZE = 200
-EVAL_BATCH_SIZE = 200
+TRAIN_BATCH_SIZE = 1000
+EVAL_BATCH_SIZE = 1000
 
 def my_metric(labels, predictions):
     pred_values = predictions['logistic']
@@ -78,6 +79,15 @@ def train_and_maybe_evaluate(hparams):
     estimator = tf.estimator.add_metrics(estimator, my_metric)
 
     tf.estimator.train_and_evaluate(estimator, train_spec, eval_spec)
+
+    eval_input_receiver_fn = lambda: model.eval_input_receiver_fn(
+            tf_transform_output)
+    
+    eval_model_dir = os.path.join(hparams.output_dir, 
+                            '{}_eval'.format(hparams.first_dnn_layer_size))
+    tfma.export.export_eval_savedmodel(
+        estimator=estimator, export_dir_base=eval_model_dir,
+        eval_input_receiver_fn=eval_input_receiver_fn)
 
     return estimator
 

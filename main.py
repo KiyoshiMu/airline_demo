@@ -18,9 +18,10 @@ if __name__ == "__main__":
         '--tf_transform_dir=work_dir',
         '--output_dir=models',
         '--eval_files=work_dir/eval*',
-        '--train_steps=10000',
-        '--num_dnn_layers=3',
-        '--first_dnn_layer_size=30',
+        '--train_steps=3000',
+        '--num_dnn_layers=4',
+        '--first_dnn_layer_size=60',
+        '--wide=True'
         # '--tag=flights'
         #  '--job_dir',
     ]

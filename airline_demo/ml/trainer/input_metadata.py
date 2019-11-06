@@ -3,8 +3,10 @@ import tensorflow as tf
 from tensorflow_transform.tf_metadata import dataset_metadata, schema_utils
 
 HASH_STRING_FEATURE_KEYS = {'MKT_UNIQUE_CARRIER':15}
-
 CATEGORICAL_FEATURE_KEYS = list(HASH_STRING_FEATURE_KEYS.keys())
+
+# VOC_STRING_FEATURE_KEYS = {'MKT_UNIQUE_CARRIER':12}
+# CATEGORICAL_FEATURE_KEYS = list(VOC_STRING_FEATURE_KEYS.keys())
 
 # CATEGORICAL_FEATURE_KEYS_TO_BE_REMOVED = []
 
