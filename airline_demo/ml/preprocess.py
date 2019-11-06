@@ -31,14 +31,14 @@ def preprocessing_fn(inputs):
     """Preprocess input columns into transformed columns."""
     outputs = {}
 
-    # Scale numeric columns to have range [0, 1].
+    # Scale numeric columns to have range [0, 1]
     for key in NUMERIC_FEATURE_KEYS:
         outputs[key] = tft.scale_to_0_1(inputs[key])
 
     for key in NUMERIC_FEATURE_KEYS_INT:
         outputs[key] = tft.scale_to_0_1(inputs[key])
 
-    # bucketize numeric columns
+    # Bucketize numeric columns
     for key in TO_BE_BUCKETIZED_FEATURE:
         outputs[f'{key}_b'] = tft.bucketize(
             inputs[key],

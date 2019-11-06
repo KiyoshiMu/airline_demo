@@ -1,5 +1,7 @@
 """A script for merging real-time depart and arrive data to a simgle sample 
-used to build the deep-learning model"""
+used to build the deep-learning model
+apache-beam[gcp]
+"""
 
 import time
 import tempfile
@@ -183,13 +185,13 @@ def main(event, context):
     argv = [
         '--project={}'.format('airlinegcp'),
         '--job_name=create-merge',
-        '--staging_location=gs://{}/tmp/staging2/'.format('sssoooeee'),
-        '--temp_location=gs://{}/tmp/temp2/'.format('sssoooeee'),
+        '--staging_location=gs://{}/tmp/staging2/'.format('linelineline'),
+        '--temp_location=gs://{}/tmp/temp2/'.format('linelineline'),
         '--setup_file={}'.format(s_p),
         '--max_num_workers=4',
         '--runner=DataflowRunner',
         '--region=us-central1',
-        '--input={}'.format(file_['bucket']+file_['name'])
+        '--input=gs://{}/{}'.format(file_['bucket'],file_['name']),
         ]
     run(argv)
 

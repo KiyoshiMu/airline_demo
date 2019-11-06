@@ -11,3 +11,5 @@ tfma*
 *.ipynb
 !.gitignore
 air-000*
+upload.py
+*.pickle

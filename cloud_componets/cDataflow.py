@@ -1,8 +1,6 @@
 """A script for merging real-time depart and arrive data to a simgle sample 
 used to build the deep-learning model
-timezonefinder==3.0.0
-pytz
-apache-beam
+apache-beam[gcp]
 """
 
 import time
@@ -135,9 +133,7 @@ def run(argv=None):
  'DIVERTED', 'DISTANCE', 'DEP_AIRPORT_LAT', 'DEP_AIRPORT_LON', 
  'DEP_AIRPORT_TZOFFSET', 'ARR_AIRPORT_LAT', 'ARR_AIRPORT_LON', 
  'ARR_AIRPORT_TZOFFSET']
-
     SCHEMA = 'FL_DATE:date,MKT_UNIQUE_CARRIER:string,MKT_CARRIER_AIRLINE_ID:string,MKT_CARRIER:string,MKT_CARRIER_FL_NUM:string,OP_CARRIER_FL_NUM:string,ORIGIN_AIRPORT_ID:string,ORIGIN_AIRPORT_SEQ_ID:string,ORIGIN_CITY_MARKET_ID:string,DEST_AIRPORT_ID:string,DEST_AIRPORT_SEQ_ID:string,DEST_CITY_MARKET_ID:string,DEST:string,CRS_DEP_TIME:timestamp,DEP_TIME:timestamp,DEP_DELAY:float,TAXI_OUT:float,WHEELS_OFF:timestamp,WHEELS_ON:timestamp,TAXI_IN:float,CRS_ARR_TIME:timestamp,ARR_TIME:timestamp,ARR_DELAY:float,CANCELLED:float,CANCELLATION_CODE:string,DIVERTED:string,DISTANCE:float,DEP_AIRPORT_LAT:float,DEP_AIRPORT_LON:float,DEP_AIRPORT_TZOFFSET:float,ARR_AIRPORT_LAT:float,ARR_AIRPORT_LON:float,ARR_AIRPORT_TZOFFSET:float'
-
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', required=False,
         help='Input file to be read. This can be a local file or '
@@ -183,8 +179,9 @@ def run(argv=None):
                     create_disposition=beam.io.BigQueryDisposition.CREATE_IF_NEEDED))
         )
 
-if __name__ == "__main__":
+def main(event, context):
     s_p = makesetup()
+    file_ = event
     argv = [
         '--project={}'.format('airlinegcp'),
         '--job_name=create-merge',
@@ -193,7 +190,11 @@ if __name__ == "__main__":
         '--setup_file={}'.format(s_p),
         '--max_num_workers=4',
         '--runner=DataflowRunner',
-        '--region=us-central1'
+        '--region=us-central1',
+        '--input=gs://{}/{}'.format(file_['bucket'],file_['name']),
         ]
     run(argv)
 
+if __name__ == "__main__":
+    main({'bucket':'shellshell', 'name':'csvs/2018-01.csv'}, None)
+    
