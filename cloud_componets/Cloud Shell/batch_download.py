@@ -2,8 +2,7 @@
 
 import datetime
 import argparse
-from airline_demo.preparation import month_download
-# import month_download
+import month_download
 
 
 def _replace_day(date):
@@ -29,9 +28,9 @@ def gen_date(start_date=None, end_date=None):
         date += date_step
 
 
-def main(start_date=None, end_date=None):
+def main(bucket, start_date=None, end_date=None):
     for date in gen_date(start_date, end_date):
-        month_download.main(date)
+        month_download.main(bucket, date=date)
 
 
 def _parse_month(arg: str):
@@ -47,5 +46,10 @@ if __name__ == "__main__":
                            help='format: year-month, e.g. 2018-01')
     argparser.add_argument(
         '--end', type=str, help='format: year-month, e.g. 2018-12')
+    argparser.add_argument(
+        '--bucket', type=str, help='your bucketID, e.g. eoseoseos')
     _args = argparser.parse_args()
-    main(_parse_month(_args.start), _parse_month(_args.end))
+    main(_args.bucket,
+         _parse_month(_args.start),
+         _parse_month(_args.end),
+         )

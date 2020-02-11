@@ -71,12 +71,12 @@ def _size_check(f_p):
     return os.stat(f_p).st_size > 5000000
 
 
-def main(date=None):
+def main(bucket, date=None):
     dst = tempfile.mkdtemp()
     if date is None:
         date = datetime.date.today()
         date = date.replace(year=2018)
-    uploader = Uploader('eoseoseos')
+    uploader = Uploader(bucket)
     blobpath = 'tmp/csvs/'
     if uploader.exist_check(date, blobpath):
         logging.info('Data of %s already exist', date)
@@ -91,7 +91,3 @@ def main(date=None):
         # os.remove(csv_p)
     else:
         logging.warning('Data of %s may not publish yet', date)
-
-
-if __name__ == "__main__":
-    main()

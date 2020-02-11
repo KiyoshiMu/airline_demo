@@ -2,6 +2,7 @@
 *.zip
 .*
 data*
+!Dataflow
 _[!_]*
 tmp
 work_dir
@@ -13,3 +14,5 @@ tfma*
 air-000*
 upload.py
 *.pickle
+test
+main.py
