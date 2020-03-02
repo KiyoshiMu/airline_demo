@@ -47,7 +47,16 @@ Do what you want to explore this data.
 
 ### Cloud Scheduler
 
-First, create a Pub/sub topic. Then, use the Cloud Scheduler to set a monthly job which sends a message to the topic. The content of the message is the **name** of a _bucket_ you created to store the data. If you are new to this, please check the [document](https://cloud.google.com/scheduler/docs/configuring/cron-job-schedules?authuser=3&_ga=2.225359640.-367087609.1574295701#defining_the_job_schedule)
+First, create a new bucket where you will store the monthly downloaded data, so that you can later trigger Cloud Function without influence from other operation.
+
+```bash
+export DOWNLOAD_BUCKET=tmptmptmptmp
+gsutil mb gs://$DOWNLOAD_BUCKET
+```
+
+Then, create a Pub/sub topic. Then, use the Cloud Scheduler to set a monthly job which sends a message to the topic. The content of the message, i.e. **Payload** is the **name** of a _bucket_ you created to store the data. If you are new to this, please check the [document](https://cloud.google.com/scheduler/docs/configuring/cron-job-schedules?authuser=3&_ga=2.225359640.-367087609.1574295701#defining_the_job_schedule)
+
+![Scheduler](https://drive.google.com/uc?id=19XAA19u5L7erkeJJIa_wIn2KJsJViQ_G)
 
 ### Cloud Functions - Download
 
@@ -160,7 +169,7 @@ Since the model here is created by Tensorflow estimator, you need to encode the 
 
 Go to the _Models_ in AI Platform and you can easily deploy the model which perform the best. Do you see the argument _--config ./hptuning_config.yaml_ above? It a config file for the AI Platform to search the best hyperparameter, under your defined range though.
 
-Then, you need yet another glue, Google Functions. You may notice the kick_predict.py file in Cloud Functions folder. Copy the code into the main.py part in the interface as usual and add the dependencies, which show at the start of the file. This function is used to encode the data and call the model deployed on AI Platform. Because, the model is on AI Platform, you need to add the role _ML/Admin_ to the Google Functions.
+Then, you need yet another glue, Google Functions. You may notice the kick*predict.py file in Cloud Functions folder. Copy the code into the main.py part in the interface as usual and add the dependencies, which show at the start of the file. This function is used to encode the data and call the model deployed on AI Platform. Because, the model is on AI Platform, you need to add the role \_ML/Admin* to the Google Functions.
 
 Finally, you can use 101 ways to call the Google Functions to make predictions. Just make sure when call the REST API, you need to format the data as something like the following one:
 {"instances":["UA,-17.0,654.0,40.65222222,-75.44055556,41.97444444,-87.90666667,7,11"]}.

@@ -17,3 +17,4 @@ upload.py
 test
 main.py
 !data/airports.csv
+*.exe

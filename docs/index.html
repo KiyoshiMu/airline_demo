@@ -1,0 +1,461 @@
+
+<!doctype html>
+
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <meta name="theme-color" content="#4F7DC9">
+  <meta charset="UTF-8">
+  <title>Avoid-Late Prediction: A Toy Project</title>
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro:400|Roboto:400,300,400italic,500,700|Roboto+Mono">
+  <link rel="stylesheet" href="//fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="https://storage.googleapis.com/codelab-elements/codelab-elements.css">
+  <style>
+    .success {
+      color: #1e8e3e;
+    }
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <google-codelab-analytics gaid="UA-49880327-14"></google-codelab-analytics>
+  <google-codelab codelab-gaid=""
+                  id="Avoid-Late"
+                  title="Avoid-Late Prediction: A Toy Project"
+                  environment="web"
+                  feedback-link="https://moo-yewtsing.github.io/">
+    
+      <google-codelab-step label="Overview" duration="2">
+        <p>This tutorial describes a toy project based on Google Cloud Platform.</p>
+<p>Imagine you are on an airplane and you&#39;re going to a remote place where you will have a super important meeting. If you&#39;ll be late, it&#39;s better to cancel it early (when the wheels get off) than letting the CEO or CTO wait for your arrival, annoying that you dare not to respect them.</p>
+<p>Still, it&#39;s acceptable for someone to be late for <strong>less than 10 minutes</strong>. After all, it&#39;s understandable that as a non-machine, it&#39;s hard to be punctual every time. As a result, you wonder if it&#39;s possible that you can predict whether you will be too late. Then, you can have as many not-too-late conferences as possible, that would be so great!</p>
+<p>This project&#39;s goal is to make this vision become a reality. I&#39;ll build a deep-learning model that can give you a suggestion about whether to cancel a meeting.</p>
+<p>I used the flight data in 2018 from <a href="https://www.transtats.bts.gov" target="_blank">Transtats</a>. I leveraged the Google Cloud Platform to complete the tasks below:</p>
+<ol type="1">
+<li>Build micro-servers that can automatically download and clean data monthly</li>
+<li>Batch download data of 2018 and processing them</li>
+<li>Randomly sample 80% data to build a deep-learning model</li>
+<li>Use half of the rest data to evaluate the model</li>
+<li>Deploy the model</li>
+</ol>
+<p>I know you may want to try it first. <a href="https://forms.gle/SYNVKpKsd7vy3qYT6" target="_blank">Here</a> you go.</p>
+<h2 class="checklist" is-upgraded>What You&#39;ll Learn</h2>
+<ul class="checklist">
+<li>how to design an architecture in micro-servers way</li>
+<li>how to create a schedular to kick off a pipeline automatically</li>
+<li>how to write &amp; deploy codes in Python and Javascript on Google Functions</li>
+<li>how to create a customized dataflow template</li>
+<li>how to train models in different extend of control to improve the performance</li>
+<li>how to deploy the model</li>
+<li>other stuff</li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Architecture" duration="2">
+        <p>In this part, you will learn how to design an architecture in micro-servers way.</p>
+<h2 is-upgraded>Data Collection</h2>
+<p class="image-container"><img alt="Automatically downloading" src="img\521e702548472818.jpg"></p>
+<p>You will use Cloud Schedule, Cloud Pubsub, Cloud Functions, and Cloud Dataflow as microservers together to perform monthly auto-downloading, processing, and saving tasks.</p>
+<p>The Cloud Scheduler will initiate a message sending to Cloud Pubsub&#39;s &#34;monthly-reminder&#34; topic. When the message comes, it&#39;ll trigger a Cloud Function, which will download the latest monthly data from the Transtats, unzip it, change the name and save it as CSV file to the Cloud Storage. When the new CSV file successfully saved in Cloud Storage. It&#39;ll trigger another Cloud Function, which will submit a job to Cloud Dataflow. Then Cloud Dataflow will digest the new data, do some transformation and finally, sink it into Bigquery, the data warehouse.</p>
+<h2 is-upgraded>Model Training</h2>
+<p class="image-container"><img alt="Model Training" src="img\9fc5ea147ab34e90.jpg"></p>
+<p>To train a machine learning model is just like cooking. If there is a recipe, you should try the existing recipe first. To reinvent pizza is not fun and the new pizza may not as tasty as the &#34;experienced&#34; pizza.</p>
+<p>In the AI Platform, there are three build-in algorithms. Understand the basic settings of machine learning job, and you can leverage the &#34;magic&#34; power of Google AI. After that, it&#39;s time to write your code and to see whether you can beat Google&#39;s automation.</p>
+<h2 is-upgraded>Model Deployment</h2>
+<p class="image-container"><img alt="Model Deployment" src="img\a6bc1ef55fa430b8.jpg"></p>
+<p>You will use the Google Sheet as the platform and AI-platform as the backend to deploy your model.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Setup" duration="1">
+        <p>You need to do the following things and you can find plenty tutorials about how to complete these tasks.</p>
+<ol type="1">
+<li>Create a Project</li>
+<li>Launch Google Cloud Shell</li>
+<li>Create Virtual Environment via Miniconda</li>
+<li>Clone the Git Repo</li>
+<li>Enable the related APIs, including Cloud Functions, Cloud Dataflow, Cloud Compute Engine, Cloud AI Platform Training &amp; Prediction. More APIs may be needed to enable when you follow the coming steps.</li>
+</ol>
+<p>You may need to use following line to create virtual environment.</p>
+<pre><code>wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O mini.sh
+
+bash mini.sh
+</code></pre>
+<p>You need to type &#34;yes&#34; for the initialization.</p>
+<pre><code>installation finished.
+Do you wish the installer to initialize Miniconda3
+by running conda init? [yes|no]
+[no] &gt;&gt;&gt; yes
+</code></pre>
+<p><em>Restart your Cloud Shell</em>. Your Cloud Shell should look like</p>
+<pre><code>(base) bunncebunny@cloudshell:~ (avoid-late)$
+</code></pre>
+<p>Create a new virtual environment and export parameters.</p>
+<pre><code>conda create -n [YOUR_ENV_NAME] python=3.7
+conda activate [YOUR_ENV_NAME]
+export BUCKET_ID = [YOUR_BUCKET_ID e.g. airairair]
+export PROJECT_ID = [YOUR_PROJECT_ID e.g. avoid-late]
+</code></pre>
+<p>For example,</p>
+<pre><code>conda create -n nolate python=3.7
+conda activate nolate
+export BUCKET_ID=airairair
+export PROJECT_ID=avoid-late
+</code></pre>
+<p>And you can see your Cloud Shell looks like:</p>
+<pre><code>(nolate) bunncebunny@cloudshell:~ (avoid-late)$
+</code></pre>
+<p>Then, clone the Repo.</p>
+<pre><code>git clone https://github.com/Moo-YewTsing/airline_demo.git
+</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Data Collection - Batch download" duration="10">
+        <p>In the Architecture section, you learned the design of architecture, and the data collection is designed to be monthly conducted. Here, it&#39;s different. You will perform batch downloading first to gather enough data.</p>
+<p>In the <em>Cloud Shell</em>, use command lines to check the related scripts.</p>
+<pre><code>cd airline_demo/cloud_components/Cloud\ Shell/
+cat batch_download.py
+cat month_download.py
+</code></pre>
+<p>Then you need to create a bucket to store your data.</p>
+<pre><code>gsutil mb gs://$BUCKET_ID
+</code></pre>
+<p>And then, you should probably set up authentication by setting up the GOOGLE_APPLICATION_CREDENTIALS environment variable, like below. (The format of service account is [SA-NAME]@[PROJECT-ID].iam.gserviceaccount.com)</p>
+<pre><code>gcloud iam service-accounts create downloader \
+    --description &#34;a service-accounts for downloader&#34; \
+    --display-name &#34;downloader&#34;
+
+gcloud projects add-iam-policy-binding avoid-late \
+  --member serviceAccount:downloader@avoid-late.iam.gserviceaccount.com \
+  --role roles/storage.admin
+
+gcloud iam service-accounts keys create ~/downloader_key.json \
+  --iam-account downloader@avoid-late.iam.gserviceaccount.com
+
+export GOOGLE_APPLICATION_CREDENTIALS=~/downloader_key.json
+</code></pre>
+<p>In the <em>Cloud Shell</em>, use command lines to download the data you need based on time range <strong>and change the bucket argument based on you conditions.</strong> Like:</p>
+<pre><code>python3 batch_download.py --start 2018-01 --end 2019-12 --bucket BUCKET_ID
+</code></pre>
+<p>Then, it should download the data which are in the range, and the logging will show some messages like:</p>
+<pre><code>2020-02-10 15:03:47,076 - month - INFO - /tmp/tmpqhdctzyq/2018-01.zip download completed
+
+2020-02-10 15:03:47,855 - month - INFO - Unzip completed to /tmp/tmpqhdctzyq/2018-01.csv
+
+2020-02-10 15:03:51,027 - month - INFO - /tmp/tmpqhdctzyq/2018-01.csv upload completed
+</code></pre>
+<h2 is-upgraded>Dataflow</h2>
+<p>Check the Dataflow template.</p>
+<pre><code>cd ~/airline_demo/cloud_components/Dataflow
+cat flightFlow.py
+</code></pre>
+<p>First staging the Customized Template.</p>
+<pre><code>python -m flightFlow \
+--runner DataflowRunner \
+--project $PROJECT_ID \
+--staging_location gs://$BUCKET_ID/staging \
+--temp_location gs://$BUCKET_ID/temp \
+--template_location gs://$BUCKET_ID/templates/flightFlow \
+--setup_file ./setup.py \
+--experiments=use_beam_bq_sink \
+</code></pre>
+<p>Create datasets in Bigquery and upload needed file.</p>
+<pre><code>bq mk flights
+bq mk flights.rawFlights
+gsutil cp airports.csv gs://$BUCKET_ID/
+</code></pre>
+<p>Then, start the dataflow cluster.</p>
+<pre><code>gcloud dataflow jobs run flightFlow \
+ --gcs-location=gs://$BUCKET_ID/templates/flightFlow \
+ --staging-location=gs://$BUCKET_ID/temp \
+ --parameters=input=&#34;gs://$BUCKET_ID/tmp/csvs/*&#34;,output=&#34;$PROJECT_ID:flights.rawFlights&#34;,airport=&#34;gs://$BUCKET_ID/airports.csv&#34; \
+ --zone=us-central1-f
+</code></pre>
+<p>After about 20 mins, in console, you should see the result as following.</p>
+<p class="image-container"><img alt="dataflow clean" src="img\6e18af83b0040e17.PNG"></p>
+<p>For more information, please check the <a href="https://cloud.google.com/dataflow/docs/guides/templates/running-templates" target="_blank">document</a>.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Data Collection - Monthly download" duration="10">
+        <h2 is-upgraded>Cloud Scheduler</h2>
+<p>First, create a new bucket where you will store the monthly downloaded data, so that you can later trigger Cloud Function without influence from other operation.</p>
+<pre><code>export DOWNLOAD_BUCKET=tmptmptmptmp
+
+gsutil mb gs://$DOWNLOAD_BUCKET
+</code></pre>
+<p>Then, create a Pub/sub topic. Then, use the Cloud Scheduler to set a monthly job which sends a message to the topic. The content of the message, i.e. <strong>Payload</strong> is the <strong>name</strong> of a <em>bucket</em> you created to store the data. If you are new to this, please check the <a href="https://cloud.google.com/scheduler/docs/configuring/cron-job-schedules?authuser=3&_ga=2.225359640.-367087609.1574295701#defining_the_job_schedule" target="_blank">document</a></p>
+<p>You may need to enabling service [appengine.googleapis.com].</p>
+<p>For command lines, they look like as below.</p>
+<pre><code>gcloud pubsub topics create monthMsg
+
+gcloud scheduler jobs create pubsub monthTrigger \
+--schedule=&#34;* * 15 * *&#34; --topic=monthMsg \
+--message-body=$DOWNLOAD_BUCKET --time-zone=&#34;EST&#34;
+</code></pre>
+<h2 is-upgraded>Cloud Functions - Download</h2>
+<pre><code>cd ~/airline_demo/cloud_componets/Cloud\ Functions/
+</code></pre>
+<p>Look at the file named auto_month.py.</p>
+<pre><code>cat auto_month.py
+</code></pre>
+<p>Create a Cloud Functions, which is triggered by the topic your job in Cloud Scheduler sends to.</p>
+<p>You may want to change the year in the code, which is for the use in 2019 to avoid no data to download for the required month.</p>
+<pre><code>date = date.replace(year=2018)
+</code></pre>
+<p>In Console, Select <em>Runtime</em> as <em>Python 3.7</em> and copy the codes in this file to the main.py field. Also, put <em>google-cloud-storage</em> as a new line in the <em>requirements.txt</em> field.</p>
+<p>Or in Cloud Shell, use the lines below.</p>
+<pre><code>gsutil cp monthDownload.zip gs://$BUCKET_ID
+
+gcloud functions deploy monthDownload --entry-point main --runtime python37 --trigger-topic monthMsg \
+--source=gs://$BUCKET_ID/monthDownload.zip \
+--service-account downloader@avoid-late.iam.gserviceaccount.com \
+--memory=512MB \
+--allow-unauthenticated
+</code></pre>
+<h2 is-upgraded>Cloud Functions - Kick Dataflow</h2>
+<p>First, you need to set a service account for this Cloud Functions. The role for it is Dataflow/Admin. Maybe, you need to check this <a href="https://cloud.google.com/iam/docs/creating-managing-service-accounts" target="_blank">document</a>, and find the command lines below useful.</p>
+<pre><code>gcloud iam service-accounts create dfrunner \
+    --description &#34;a service-accounts for dataflow&#34; \
+    --display-name &#34;dataflow_runner&#34;
+
+gcloud projects add-iam-policy-binding avoid-late \
+  --member serviceAccount:dfrunner@avoid-late.iam.gserviceaccount.com \
+  --role roles/dataflow.admin
+</code></pre>
+<p>Check the file named [kickflow.js]</p>
+<p>Create a Cloud Functions, which is triggered by the <em>Finalize/Create</em> event of Cloud Storage. The bucket is the one you created to store the data. You should have used it as the content of message sent by Cloud Scheduler before.</p>
+<p>Select <em>Runtime</em> as <em>Node.js 8</em> (The API for Python is documented poorly, so I prefer to use Node.js here) and copy the codes in this file to the index.js field. Also, put <em>&#34;googleapis&#34;: &#34;^47.0.0&#34;</em> as a new line in the <em>packages.json</em>&#39;s dependencies.</p>
+<p>The following parts are hard coded, please make sure you have changed them.</p>
+<pre><code>const output = &#34;avoid-late:flights.rawFlights&#34;;
+const airport = &#34;gs://airairair/airports.csv&#34;;
+const TEMPLATE_BUCKET = &#34;airairair&#34;;
+const TEMPLATE_NAME = &#34;flightFlow&#34;;
+
+const request = {
+  projectId: &#34;avoid-late&#34;
+};
+</code></pre>
+<pre><code>cp kickflow.js index.js
+
+zip kickflow.zip index.js package.json
+
+gsutil cp kickflow.zip gs://$BUCKET_ID/
+
+gcloud functions deploy kickFlow --entry-point main --runtime nodejs8 --trigger-bucket $DOWNLOAD_BUCKET \
+--source=gs://$BUCKET_ID/kickflow.zip \
+--service-account dfrunner@avoid-late.iam.gserviceaccount.com \
+--allow-unauthenticated
+</code></pre>
+<p>To test the pipeline, you can manually trigger the scheduler</p>
+<pre><code>gcloud scheduler jobs run monthTrigger
+</code></pre>
+<p>In the Bucket page, you should see.</p>
+<p class="image-container"><img alt="bucket" src="img\744e1365df2b346a.PNG"></p>
+<p>And in the Dataflow page, you should see.</p>
+<p class="image-container"><img alt="newFlow" src="img\67feda05516a094.PNG"></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="BigQuery" duration="10">
+        <p>Bigquery is the data warehouse, and its cost is equivalent to the cost of Google Storage. As a result, the cost will not increase even if you store the data in this place where you can interact with the data.</p>
+<p>What is the meaning of &#34;interact with the data&#34;? In Bigquery, you can query questions you am interested in, like whether some carriers are more likely to have a late arrival or whether seasons can influence the flights&#39; delay. Besides, the data can be loaded into Data Studio, a visualization tool based on Bigquery.</p>
+<p>Here, I challenge you to find the results of these questions like below, to show the type of carrier, the season, the distance, and the locations have relations with the delay.</p>
+<p class="image-container"><img alt="Data Studio answers my questions" src="img\1fb8432c349982dd.jpg"></p>
+<p>Moreover, it&#39;s not a static visualization tool. You can &#34;query&#34; data by touching these icons. For example, you can select a specific date range. All the visualization will change automatically as a result.</p>
+<p class="image-container"><img alt="Data Studio change" src="img\f7bf012e46746b15.png"></p>
+<p>From the exploration in Data Studio, you may notice that the carriers, locations, department delay, distance, and DateTime more or less have to influence on the delay of the flight. Therefore, you can select related features, including ‘arr_lat&#39;, ‘dep_lat&#39;, ‘dep_lng&#39;, ‘arr_lng&#39;, ‘DEP_DELAY&#39;, ‘DISTANCE&#39;, ‘hour&#39;, ‘month&#39;, and ‘MKT_UNIQUE_CARRIER&#39; to train a sophisticated model.</p>
+<pre><code>SELECT
+  CASE
+    WHEN ARR_DELAY &gt;= 10 THEN 1
+  ELSE
+  0
+END
+  AS cancel,
+  MKT_UNIQUE_CARRIER,
+  DEP_DELAY,
+  DISTANCE,
+  DEP_AIRPORT_LAT AS dep_lat,
+  DEP_AIRPORT_LON AS dep_lng,
+  ARR_AIRPORT_LAT AS arr_lat,
+  ARR_AIRPORT_LON AS arr_lng,
+  EXTRACT(MONTH
+  FROM
+    FL_DATE) AS month,
+  EXTRACT (HOUR
+  FROM
+    DEP_TIME) AS hour
+FROM
+  `eeeooosss.flight.rawflight`
+WHERE
+  MOD(ABS(FARM_FINGERPRINT(CAST(FL_DATE AS STRING))),10) &lt; 8
+  -- the line above is to separate the data for training and testing.
+</code></pre>
+<p>After saving the result into Google Storage, you can start the ML part. To move the BigQuery tables into the bucket, you may find the following lines useful. The following line only show how to save the testing part. Can you find the solution to save the training part?</p>
+<pre><code>bq extract --destination_format CSV --noprint_header flight.test gs://$BUCKET_ID/for_ai/test/flight-*.csv
+</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Built-in ML (Try to learn by yourself)" duration="10">
+        <p>The three algorithms are XGBoost, wide and deep model, and linear learner model. XGBoost tree is a kind of traditional machine learning model. Like random forest tree, it&#39;s based on decision tree ensembles, which combine the results of multiple classifications and regression models. The wide and deep model combines a linear model that learns and &#34;memorizes&#34; a wide range of rules, with a deep neural network that &#34;generalizes&#34; the rules. A linear learner model assigns one weight to each input feature and sums the weights to predict a numerical target value. See more <a href="[https://cloud.google.com/ml-engine/docs/algorithms/overview](https://cloud.google.com/ml-engine/docs/algorithms/overview)" target="_blank">details</a>.</p>
+<p>Their final evaluation results are compared as follows. Strangely, this final evaluation in logging for build-in algorithms seems only to use part of the evaluation data. As a result, later, you need to evaluate the best built-in models by using all the evaluation data.</p>
+<table>
+<tr></tr>
+<tr><td colspan="1" rowspan="1"><p>XGBoost</p>
+</td><td colspan="1" rowspan="1"><p>0.865</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Linear learner model</p>
+</td><td colspan="1" rowspan="1"><p>0.923</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Wide and deep model</p>
+</td><td colspan="1" rowspan="1"><p>0.961</p>
+</td></tr>
+</table>
+<p>It&#39;s clear the wide and deep model performs the best here. Now, it&#39;s time to write you code and to see whether you could beat Google&#39;s automation.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Preprocess" duration="10">
+        <p>CD to the <em>AI Platform</em> folder. Have a look at the scripts inside.</p>
+<p>Here, first, you will use Tensorflow Transform, which is an extension for data processing. It has API to handle Feature tuning (e.g., scaling and normalizing numeric values), Representation transformation (e.g., bucketization), Feature construction (e.g., feature crossing), and so on. Besides, it can use dataflow to run the processing job. As we mentioned before, dataflow can deal with TB-level jobs as well as MB-level jobs. Thus, it would be time-effective to make data processed and ready for training. Moreover, it will attach transformations to the exported model. As a result, it resolves the annoying preprocessing challenge – the training-serving skew, a difference between the predictive performance of training and serving. It&#39;s largely caused by the discrepancy between how data are handled in the training and the serving pipelines. For more information see <a href="https://cloud.google.com/solutions/machine-learning/data-preprocessing-for-ml-with-tf-transform-pt1" target="_blank">Here</a>.</p>
+<p>Here, for numeric data, like &#34;DEP_DELAY&#34; and &#34;DISTANCE&#34;, the transformation normalizes them to &#34;0-1&#34;. For string feature, like &#34;MKT_UNIQUE_CARRIER&#34;, it first hashes them to value and make them one-hot-encoding. For value like &#34;latitude&#34;, &#34;longitude&#34;, &#34;hour&#34; and &#34;month,&#34; it puts them into buckets so that these features&#39; categorial information can be represented. Last, it makes a new feature by crossing &#34;latitude&#34; and &#34;longitude&#34; and bucketizating them.</p>
+<pre><code>    # Scale numeric columns to have range [0, 1]
+    for key in NUMERIC_FEATURE_KEYS:
+        outputs[key] = tft.scale_to_0_1(inputs[key])
+
+    for key in NUMERIC_FEATURE_KEYS_INT:
+        outputs[key] = tft.scale_to_0_1(inputs[key])
+
+    # Bucketize numeric columns
+    for key in TO_BE_BUCKETIZED_FEATURE:
+        outputs[f&#39;{key}_b&#39;] = tft.bucketize(
+            inputs[key],
+            TO_BE_BUCKETIZED_FEATURE[key]
+        )
+
+    for key in HASH_STRING_FEATURE_KEYS:
+        outputs[key] = tft.hash_strings(inputs[key], HASH_STRING_FEATURE_KEYS[key])
+</code></pre>
+<p>In the <em>AI Platform</em> folder. And change the hard code parameters of main_preprocess.py.</p>
+<pre><code>ARGV1 = [
+        &#39;--train-data-file=gs://[BUCKET_ID]/for_ai/train*&#39;,
+        &#39;--test-data-file=gs://[BUCKET_ID]/for_ai/eval*&#39;,
+        &#39;--working-dir=gs://[BUCKET_ID]/work_dir&#39;,
+        &#39;--project=[PROJECT_ID]&#39;
+        ]
+</code></pre>
+<p>Then, create GOOGLE_APPLICATION_CREDENTIALS for the preprocess runner, and run it.</p>
+<pre><code>gcloud iam service-accounts keys create ~/dfRunner_key.json \
+  --iam-account dfrunner@avoid-late.iam.gserviceaccount.com
+
+export GOOGLE_APPLICATION_CREDENTIALS=~/dfRunner_key.json
+
+python main_preprocess.py
+</code></pre>
+<p>In the console for Dataflow, you should see the process like below.</p>
+<p class="image-container"><img alt="Customed Transformation" src="img\992fff1d137136c0.jpg"></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Training" duration="10">
+        <p>For the hyper-parameters, including the number of layers and the first hidden layer&#39;s size, I can write a .yaml file, like below. Then AI Platform will use its algorithm to search the best combination of these values. Wait for less than one hour, and I can see my result. Luckily, mine is better than Google&#39;s automatic data processing and model creation.</p>
+<pre><code>trainingInput:
+  hyperparameters:
+    goal: MAXIMIZE
+    hyperparameterMetricTag: auc
+    maxTrials: 6
+    maxParallelTrials: 2
+    enableTrialEarlyStopping: True
+    params:
+      - parameterName: first_dnn_layer_size
+        type: INTEGER
+        minValue: 10
+        maxValue: 100
+        scaleType: UNIT_LINEAR_SCALE
+      - parameterName: num_dnn_layers
+        type: INTEGER
+        minValue: 3
+        maxValue: 6
+        scaleType: UNIT_LINEAR_SCALE
+</code></pre>
+<p>CD to the ML folder and run the following lines.</p>
+<pre><code>DATE=`date &#39;+%Y%m%d_%H%M%S&#39;`
+    export JOB_NAME=flight_$DATE
+    export GCS_JOB_DIR=gs://eoseoseos/jobs/$JOB_NAME
+
+gcloud ai-platform jobs submit training $JOB_NAME \
+                                --stream-logs \
+                                --runtime-version 1.15 \
+                                --python-version 3.7 \
+                                --config ./hptuning_config.yaml \
+                                --staging-bucket gs://$BUCKET_ID \
+                                --module-name trainer.task \
+                                --package-path trainer \
+                                --region us-central1 \
+                                --project $PROJECT_ID \
+                                -- \
+                                --train_steps 20000 \
+                                --tf_transform_dir gs://$BUCKET_ID/work_dir \
+                                --output_dir gs://$BUCKET_ID/models \
+                                --train_files gs://$BUCKET_ID/work_dir/train* \
+                                --eval_files gs://$BUCKET_ID/work_dir/eval*
+</code></pre>
+<p class="image-container"><img alt="HyperTune Results" src="img\b588d01c70a161a.jpg"></p>
+<p class="image-container"><img alt="Best Model" src="img\b8edb0a1a770281a.jpg"></p>
+<p>Here, we can do model examinations so that we can know the pro and cons of the model and then can &#34;targeted&#34; refined the model. For example, use the What-if tool (<a href="https://pair-code.github.io/what-if-tool/" target="_blank">https://pair-code.github.io/what-if-tool/</a>). However, from my experiences, this tool is not friendly with the AI Platform. Also, it&#39;s not directly related to GCP. So, I skip this part.</p>
+<p>Then, it&#39;s time to deploy the model.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Deploy" duration="10">
+        <p>Simply click the &#34;Deploy Model&#34;. Then GCP will deploy it on ML engines and handle all the other processes.</p>
+<p>Here, it&#39;s worth to notice that to invoke a model deployed on Google ML engines, a role for &#34;ML Engine Developer&#34; is <a href="https://cloud.google.com/ml-engine/docs/access-control" target="_blank">needed</a>. A helpful practice is to create a server account with this role and grant this server account to a microserver on Google Functions.</p>
+<p>Since the model here is created by Tensorflow estimator, you need to encode the data first and then you can send a request to ask the prediction from the model.</p>
+<p>Go to the <em>Models</em> in AI Platform and you can easily deploy the model which perform the best. Do you see the argument <em>–config ./hptuning_config.yaml</em> above? It a config file for the AI Platform to search the best hyperparameter, under your defined range though.</p>
+<p>Then, you need yet another glue, Google Functions. You may notice the kick_predict.py file in Cloud Functions folder. Copy the code into the main.py part in the interface as usual and add the dependencies, which show at the start of the file. This function is used to encode the data and call the model deployed on AI Platform. Because, the model is on AI Platform, you need to add the role <em>ML/Admin</em> to the Google Functions.</p>
+<p>Finally, you can use 101 ways to call the Google Functions to make predictions. Just make sure when call the REST API, you need to format the data as something like the following one:<br>{&#34;instances&#34;:[&#34;UA,-17.0,654.0,40.65222222,-75.44055556,41.97444444,-87.90666667,7,11&#34;]}.</p>
+<p>You can chose Google Sheet as the platform to create a demo APP. Google Sheet has the database, UI, security, and loads of built-in APIs. To match this platform, you can use Google Forms as the APP UI.</p>
+<p>Data are collected from Google Forms. After the user submits a form, it will trigger an &#34;App Script&#34; you can write in Google Sheet, it should convert the information from the user into a single payload and call the microserver on Google Functions. The microserver will transform the data in the payload to the format my model accepts. Why it&#39;s needed? Because by doing so, you can hide the secret of my model. Also, it&#39;s a separation of concerns. Later, the Google Sheet will receiver the prediction result from my model and send an e-mail based on the outcome. If the model predicts the user will not be too late for the meeting, the e-mail will encourage the user to keep the meeting. Otherwise, it will suggest the user cancel the meeting.</p>
+<pre><code>function sendMail(emailAddress, belate) {
+  if (belate) {
+    var subject = &#34;We Suggest You Cancel Your Meeting&#34;;
+    var message =
+      &#34;You are very likely not able to have your meeting in time. DO IT in next time. Good Luck!&#34;;
+  } else {
+    var subject = &#34;We Suggest You Keep Your Meeting&#34;;
+    var message =
+      &#34;You are very likely to have your meeting in time. Enjoy this Meeting! Good Luck!&#34;;
+  }
+  MailApp.sendEmail(emailAddress, subject, message);
+}
+</code></pre>
+<p class="image-container"><img alt="Sample Msg" src="img\89d74273264fc724.jpg"></p>
+<p><strong>Cool?</strong></p>
+<p>Cheers!</p>
+
+
+      </google-codelab-step>
+    
+  </google-codelab>
+
+  <script src="https://storage.googleapis.com/codelab-elements/native-shim.js"></script>
+  <script src="https://storage.googleapis.com/codelab-elements/custom-elements.min.js"></script>
+  <script src="https://storage.googleapis.com/codelab-elements/prettify.js"></script>
+  <script src="https://storage.googleapis.com/codelab-elements/codelab-elements.js"></script>
+
+</body>
+</html>
