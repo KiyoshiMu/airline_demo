@@ -15,9 +15,9 @@ Imagine you are on an airplane and you're going to a remote place where you will
 
 Still, it's acceptable for someone to be late for **less than 10 minutes**. After all, it's understandable that as a non-machine, it's hard to be punctual every time. As a result, you wonder if it's possible that you can predict whether you will be too late. Then, you can have as many not-too-late conferences as possible, that would be so great!
 
-This project's goal is to make this vision become a reality. I'll build a deep-learning model that can give you a suggestion about whether to cancel a meeting.
+This project's goal is to make this vision become a reality. you'll build a deep-learning model that can give you a suggestion about whether to cancel a meeting.
 
-I used the flight data in 2018 from [Transtats](https://www.transtats.bts.gov). I leveraged the Google Cloud Platform to complete the tasks below:
+You will use the flight data in 2018 from [Transtats](https://www.transtats.bts.gov). You will leverage the Google Cloud Platform to complete the tasks below:
 
 1. Build micro-servers that can automatically download and clean data monthly
 2. Batch download data of 2018 and processing them
@@ -471,7 +471,7 @@ In the console for Dataflow, you should see the process like below.
 ## Training
 Duration: 10
 
-For the hyper-parameters, including the number of layers and the first hidden layer's size, I can write a .yaml file, like below. Then AI Platform will use its algorithm to search the best combination of these values. Wait for less than one hour, and I can see my result. Luckily, mine is better than Google's automatic data processing and model creation.
+For the hyper-parameters, including the number of layers and the first hidden layer's size, you can write a .yaml file, like below. Then AI Platform will use its algorithm to search the best combination of these values. Wait for less than one hour, and you can see your result. Luckily, mine is better than Google's automatic data processing and model creation.
 
 ```yaml
 trainingInput:
