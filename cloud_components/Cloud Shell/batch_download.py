@@ -1,4 +1,4 @@
-"""Download BTS data from offical website."""
+"""Download BTS data from official website."""
 
 import datetime
 import argparse

@@ -16,3 +16,4 @@ upload.py
 *.pickle
 test
 main.py
+!data/airports.csv
