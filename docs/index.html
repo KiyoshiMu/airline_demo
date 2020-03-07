@@ -34,7 +34,7 @@
 <p>This project&#39;s goal is to make this vision become a reality. you&#39;ll build a deep-learning model that can give you a suggestion about whether to cancel a meeting.</p>
 <p>You will use the flight data in 2018 from <a href="https://www.transtats.bts.gov" target="_blank">Transtats</a>. You will leverage the Google Cloud Platform to complete the tasks below:</p>
 <ol type="1">
-<li>Build micro-servers that can automatically download and clean data monthly</li>
+<li>Build microservices that can automatically download and clean data monthly</li>
 <li>Batch download data of 2018 and processing them</li>
 <li>Randomly sample 80% data to build a deep-learning model</li>
 <li>Use half of the rest data to evaluate the model</li>
@@ -43,7 +43,7 @@
 <p>I know you may want to try it first. <a href="https://forms.gle/SYNVKpKsd7vy3qYT6" target="_blank">Here</a> you go.</p>
 <h2 class="checklist" is-upgraded>What You&#39;ll Learn</h2>
 <ul class="checklist">
-<li>how to design an architecture in micro-servers way</li>
+<li>how to design an architecture in microservices way</li>
 <li>how to create a schedular to kick off a pipeline automatically</li>
 <li>how to write &amp; deploy codes in Python and Javascript on Google Functions</li>
 <li>how to create a customized dataflow template</li>
@@ -56,10 +56,10 @@
       </google-codelab-step>
     
       <google-codelab-step label="Architecture" duration="2">
-        <p>In this part, you will learn how to design an architecture in micro-servers way.</p>
+        <p>In this part, you will learn how to design an architecture in microservices way.</p>
 <h2 is-upgraded>Data Collection</h2>
 <p class="image-container"><img alt="Automatically downloading" src="img\521e702548472818.jpg"></p>
-<p>You will use Cloud Schedule, Cloud Pubsub, Cloud Functions, and Cloud Dataflow as microservers together to perform monthly auto-downloading, processing, and saving tasks.</p>
+<p>You will use Cloud Schedule, Cloud Pubsub, Cloud Functions, and Cloud Dataflow as microservices together to perform monthly auto-downloading, processing, and saving tasks.</p>
 <p>The Cloud Scheduler will initiate a message sending to Cloud Pubsub&#39;s &#34;monthly-reminder&#34; topic. When the message comes, it&#39;ll trigger a Cloud Function, which will download the latest monthly data from the Transtats, unzip it, change the name and save it as CSV file to the Cloud Storage. When the new CSV file successfully saved in Cloud Storage. It&#39;ll trigger another Cloud Function, which will submit a job to Cloud Dataflow. Then Cloud Dataflow will digest the new data, do some transformation and finally, sink it into Bigquery, the data warehouse.</p>
 <h2 is-upgraded>Model Training</h2>
 <p class="image-container"><img alt="Model Training" src="img\9fc5ea147ab34e90.jpg"></p>
@@ -423,13 +423,13 @@ gcloud ai-platform jobs submit training $JOB_NAME \
     
       <google-codelab-step label="Deploy" duration="10">
         <p>Simply click the &#34;Deploy Model&#34;. Then GCP will deploy it on ML engines and handle all the other processes.</p>
-<p>Here, it&#39;s worth to notice that to invoke a model deployed on Google ML engines, a role for &#34;ML Engine Developer&#34; is <a href="https://cloud.google.com/ml-engine/docs/access-control" target="_blank">needed</a>. A helpful practice is to create a server account with this role and grant this server account to a microserver on Google Functions.</p>
+<p>Here, it&#39;s worth to notice that to invoke a model deployed on Google ML engines, a role for &#34;ML Engine Developer&#34; is <a href="https://cloud.google.com/ml-engine/docs/access-control" target="_blank">needed</a>. A helpful practice is to create a server account with this role and grant this server account to a microservices on Google Functions.</p>
 <p>Since the model here is created by Tensorflow estimator, you need to encode the data first and then you can send a request to ask the prediction from the model.</p>
-<p>Go to the <em>Models</em> in AI Platform and you can easily deploy the model which perform the best. Do you see the argument <em>–config ./hptuning_config.yaml</em> above? It a config file for the AI Platform to search the best hyperparameter, under your defined range though.</p>
-<p>Then, you need yet another glue, Google Functions. You may notice the kick_predict.py file in Cloud Functions folder. Copy the code into the main.py part in the interface as usual and add the dependencies, which show at the start of the file. This function is used to encode the data and call the model deployed on AI Platform. Because, the model is on AI Platform, you need to add the role <em>ML/Admin</em> to the Google Functions.</p>
+<p>Go to the <em>Models</em> in AI Platform and you can easily deploy the model which perform the best. Do you see the argument _–config ./hptuning<em>config.yaml</em> above? It a config file for the AI Platform to search the best hyperparameter, under your defined range though.</p>
+<p>Then, you need yet another glue, Google Functions. You may notice the kick<em>predict.py file in Cloud Functions folder. Copy the code into the main.py part in the interface as usual and add the dependencies, which show at the start of the file. This function is used to encode the data and call the model deployed on AI Platform. Because, the model is on AI Platform, you need to add the role _ML/Admin</em> to the Google Functions.</p>
 <p>Finally, you can use 101 ways to call the Google Functions to make predictions. Just make sure when call the REST API, you need to format the data as something like the following one:<br>{&#34;instances&#34;:[&#34;UA,-17.0,654.0,40.65222222,-75.44055556,41.97444444,-87.90666667,7,11&#34;]}.</p>
 <p>You can chose Google Sheet as the platform to create a demo APP. Google Sheet has the database, UI, security, and loads of built-in APIs. To match this platform, you can use Google Forms as the APP UI.</p>
-<p>Data are collected from Google Forms. After the user submits a form, it will trigger an &#34;App Script&#34; you can write in Google Sheet, it should convert the information from the user into a single payload and call the microserver on Google Functions. The microserver will transform the data in the payload to the format my model accepts. Why it&#39;s needed? Because by doing so, you can hide the secret of my model. Also, it&#39;s a separation of concerns. Later, the Google Sheet will receiver the prediction result from my model and send an e-mail based on the outcome. If the model predicts the user will not be too late for the meeting, the e-mail will encourage the user to keep the meeting. Otherwise, it will suggest the user cancel the meeting.</p>
+<p>Data are collected from Google Forms. After the user submits a form, it will trigger an &#34;App Script&#34; you can write in Google Sheet, it should convert the information from the user into a single payload and call the microservices on Google Functions. The microservices will transform the data in the payload to the format my model accepts. Why it&#39;s needed? Because by doing so, you can hide the secret of my model. Also, it&#39;s a separation of concerns. Later, the Google Sheet will receiver the prediction result from my model and send an e-mail based on the outcome. If the model predicts the user will not be too late for the meeting, the e-mail will encourage the user to keep the meeting. Otherwise, it will suggest the user cancel the meeting.</p>
 <pre><code>function sendMail(emailAddress, belate) {
   if (belate) {
     var subject = &#34;We Suggest You Cancel Your Meeting&#34;;
